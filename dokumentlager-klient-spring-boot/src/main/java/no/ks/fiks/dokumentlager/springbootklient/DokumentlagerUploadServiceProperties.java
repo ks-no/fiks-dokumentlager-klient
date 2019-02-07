@@ -1,6 +1,5 @@
 package no.ks.fiks.dokumentlager.springbootklient;
 
-import lombok.Builder;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
@@ -9,10 +8,9 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 @Data
-@Builder
 @Validated
 @ConfigurationProperties(prefix="fiks-dokumentlager-upload-service")
-public class DokumentlagerUploadServiceHost {
+public class DokumentlagerUploadServiceProperties {
     @NotBlank private String scheme;
     @NotBlank private String host;
     @NotNull private Integer port;

@@ -11,18 +11,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableConfigurationProperties({DokumentlagerIntegrasjonConfiguration.class, DokumentlagerUploadServiceHost.class, DokumentlagerDownloadServiceHost.class})
+@EnableConfigurationProperties({DokumentlagerIntegrasjonConfiguration.class, DokumentlagerUploadServiceProperties.class, DokumentlagerDownloadServiceProperties.class})
 public class DokumentlagerAutoConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(DokumentlagerKlient.class)
   public DokumentlagerKlient dokumentlagerKlient(Maskinportenklient maskinportenklient,
                                                  DokumentlagerIntegrasjonConfiguration integrasjonConfiguration,
-                                                 DokumentlagerUploadServiceHost dokumentlagerUploadServiceHost,
-                                                 DokumentlagerDownloadServiceHost dokumentlagerDownloadServiceHost) {
+                                                 DokumentlagerUploadServiceProperties dokumentlagerUploadServiceProperties,
+                                                 DokumentlagerDownloadServiceProperties dokumentlagerDownloadServiceProperties) {
     DokumentlagerApi api = new DokumentlagerApiImpl(
-            dokumentlagerUploadServiceHost.getUrl(),
-            dokumentlagerDownloadServiceHost.getUrl(),
+            dokumentlagerUploadServiceProperties.getUrl(),
+            dokumentlagerDownloadServiceProperties.getUrl(),
             new IntegrasjonAuthenticationStrategy(maskinportenklient,
                     integrasjonConfiguration.getId(),
                     integrasjonConfiguration.getPassord()));
