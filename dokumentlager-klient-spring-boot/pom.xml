@@ -17,6 +17,10 @@
             <groupId>no.ks.fiks</groupId>
             <artifactId>dokumentlager-klient</artifactId>
         </dependency>
+        <dependency>
+            <groupId>no.ks.fiks</groupId>
+            <artifactId>maskinporten-spring-boot-client</artifactId>
+        </dependency>
 
 
         <dependency>

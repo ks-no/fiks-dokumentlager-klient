@@ -59,6 +59,7 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- FIKS avhenngigheter -->
             <dependency>
                 <groupId>no.ks.fiks</groupId>
                 <artifactId>dokumentlager-klient</artifactId>
@@ -69,8 +70,6 @@
                 <artifactId>dokumentlager-klient-spring-boot</artifactId>
                 <version>${revision}${changelist}</version>
             </dependency>
-
-
             <dependency>
                 <groupId>no.ks.fiks</groupId>
                 <artifactId>maskinporten-client</artifactId>
@@ -78,10 +77,15 @@
             </dependency>
             <dependency>
                 <groupId>no.ks.fiks</groupId>
+                <artifactId>maskinporten-spring-boot-client</artifactId>
+                <version>${fiks-maskinporten-client.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>no.ks.fiks</groupId>
                 <artifactId>kryptering</artifactId>
                 <version>${fiks-kryptering.version}</version>
             </dependency>
-
+            <!-- /FIKS avhenngigheter -->
 
             <dependency>
                 <groupId>org.springframework.boot</groupId>
