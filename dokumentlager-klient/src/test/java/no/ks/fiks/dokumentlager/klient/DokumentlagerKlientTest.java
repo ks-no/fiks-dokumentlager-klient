@@ -292,7 +292,7 @@ class DokumentlagerKlientTest {
         UUID kontoId = UUID.randomUUID();
 
         DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
-                .dokumentnavn("uploadDokumentNiva3UtenFlag.pdf")
+                .dokumentnavn("uploadMangeDokumenterSamtidig.pdf")
                 .mimetype("application/pdf")
                 .ttl(-1L)
                 .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
@@ -331,7 +331,7 @@ class DokumentlagerKlientTest {
         UUID kontoId = UUID.randomUUID();
 
         DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
-                .dokumentnavn("uploadDokumentNiva3UtenFlag.pdf")
+                .dokumentnavn("uploadMangeKrypterteDokumenterSamtidig.pdf")
                 .mimetype("application/pdf")
                 .ttl(-1L)
                 .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
