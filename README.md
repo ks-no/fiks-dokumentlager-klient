@@ -34,3 +34,36 @@ Laster ned dokumentet med gitt id og returnerer en InputStream med data.
   <version>1.1.0</version>
 </dependency>
 ```
+
+Autokonfigurerer en ``DokumentlagerKlient`` bean ved bruk av Spring properties.
+
+Eksempelkonfigurasjon (alle properties er required):
+```yml
+# Upload
+fiks-dokumentlager-upload-service:
+  scheme: https
+  host: api.fiks.ks.no
+  port: 443
+
+# Download
+fiks-dokumentlager-download-service:
+  scheme: https
+  host: api.fiks.ks.no
+  port: 443
+  
+# Maskinporten
+maskinporten:
+  audience: <AUDIENCE>
+  tokenEndpoint: <TOKEN_ENDPOINT>
+  issuer: <ISSUER>
+  numberOfSecondsLeftBeforeExpire: <NUMBER_OF_SECONDS>
+  
+# Virksomhetssertifikat
+virksomhetsertifikat.sertifikater:
+- sertifikat-type: AUTH
+  keystore-password: <KEYSTORE_PASSWORD>
+  keystore-path: <KEYSTORE_PATH>
+  certificate-alias: <CERTIFICATE_ALIAS>
+  private-key-alias: <PRIVATE_KEY_ALIAS>
+  private-key-password: <PRIVATE_KEY_PASSWORD>
+```
