@@ -51,6 +51,11 @@ fiks-dokumentlager-download-service:
   host: api.fiks.ks.no
   port: 443
   
+# Integrasjon
+fiks-dokumentlager-integrasjon:
+  id: <INTEGRASJON ID>
+  passord: <INTEGRASJON PASSORD>
+  
 # Maskinporten
 maskinporten:
   audience: <AUDIENCE>
