@@ -15,8 +15,8 @@
     <version>${revision}${changelist}</version>
     <packaging>pom</packaging>
 
-    <name>Dokumentlager Java-klient</name>
-    <description>Klient for opplasting, sletting og nedlasting av dokumenter fra Fiks Dokumentlager</description>
+    <name>${project.artifactId}</name>
+    <description>Parent POM for Fiks Dokumentlager klienter</description>
     <url>https://github.com/ks-no/fiks-dokumentlager-klient</url>
 
     <scm>

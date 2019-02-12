@@ -12,6 +12,9 @@
 
     <artifactId>dokumentlager-klient-spring-boot</artifactId>
 
+    <name>Fiks Dokumentlager Spring Boot Java-klient</name>
+    <description>Autokonfigurerer en bean for Fiks Dokumentlager klienten</description>
+
     <dependencies>
         <dependency>
             <groupId>no.ks.fiks</groupId>

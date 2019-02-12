@@ -12,6 +12,9 @@
 
     <artifactId>dokumentlager-klient</artifactId>
 
+    <name>Fiks Dokumentlager Java-klient</name>
+    <description>Klient for opplasting, sletting og nedlasting av dokumenter fra Fiks Dokumentlager</description>
+
     <dependencies>
         <dependency>
             <groupId>no.ks.fiks</groupId>
