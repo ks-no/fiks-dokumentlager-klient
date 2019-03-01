@@ -60,31 +60,35 @@ public class DokumentlagerKlient {
         InputStream inputStream = dokumentStream;
 
         if (metadata.getSikkerhetsniva() != null && metadata.getSikkerhetsniva() > 3 && !skalKrypteres) {
-            log.info("Dokumentet vil bli kryptert siden sikkerhetsnivå er høyere enn 3");
+            log.info("Dokument will be encrypted as sikkerhetsnivå is greater than 3");
             skalKrypteres = true;
         }
 
         if (skalKrypteres) {
             try {
+                if (publicCertificate == null) {
+                    fetchPublicCertificate();
+                }
+
                 DokumentlagerPipedInputStream pipedInputStream = new DokumentlagerPipedInputStream();
                 PipedOutputStream pipedOutputStream = new PipedOutputStream(pipedInputStream);
                 inputStream = pipedInputStream;
 
                 krypteringFuture = executor.submit(() -> {
                     try {
-                        log.debug("Starter kryptering...");
-                        kryptering.krypterData(pipedOutputStream, dokumentStream, getX509Certificate(), provider);
-                        log.debug("Kryptering ferdig");
+                        log.debug("Starting encryption...");
+                        kryptering.krypterData(pipedOutputStream, dokumentStream, publicCertificate, provider);
+                        log.debug("Encryption completed");
                     } catch (Exception e) {
-                        log.error("Kryptering feilet, setter exception på kryptert InputStream");
+                        log.error("Encryption failed, setting exception on encrypted InputStream");
                         pipedInputStream.setException(e);
                     } finally {
                         try {
-                            log.debug("Lukker OutputStream for kryptering");
+                            log.debug("Closing encryption OutputStream");
                             pipedOutputStream.close();
-                            log.debug("OutputStream for kryptering lukket");
+                            log.debug("Encryption OutputStream closed");
                         } catch (IOException e) {
-                            log.error("Klarte ikke å lukke OutputStream for kryptering", e);
+                            log.error("Failed closing encryption OutputStream", e);
                             throw new RuntimeException(e);
                         }
                     }
@@ -93,15 +97,15 @@ public class DokumentlagerKlient {
                 throw new RuntimeException(e);
             }
         }
-        log.debug("Starter opplasting...");
+        log.debug("Starting upload...");
         DokumentlagerResponse<DokumentMetadataUploadResult> response = api.uploadDokument(inputStream, metadata, fiksOrganisasjonId, kontoId, skalKrypteres);
-        log.debug("Opplasting ferdig");
+        log.debug("Upload completed");
 
         if (krypteringFuture != null) {
             try {
-                log.debug("Venter på at krypteringstråd skal terminere...");
+                log.debug("Waiting for encryption thread to terminate...");
                 krypteringFuture.get(10, TimeUnit.SECONDS);
-                log.debug("Krypteringstråd terminert");
+                log.debug("Encryption thread terminated");
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 throw new RuntimeException(e);
             }
@@ -116,25 +120,22 @@ public class DokumentlagerKlient {
         return api.deleteDokument(fiksOrganisasjonId, kontoId, dokumentId);
     }
 
-    private X509Certificate getX509Certificate() {
-        if (publicCertificate == null) {
-            String publicKey = api.getPublicKey().getResult();
+    private void fetchPublicCertificate() {
+        String publicKey = api.getPublicKey().getResult();
 
-            try {
-                CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-                Base64.Decoder base64 = Base64.getMimeDecoder();
+        try {
+            CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+            Base64.Decoder base64 = Base64.getMimeDecoder();
 
-                byte[] buffer = base64.decode(
-                        publicKey.replace("-----BEGIN CERTIFICATE-----", "")
-                                .replace("-----END CERTIFICATE-----", ""));
+            byte[] buffer = base64.decode(
+                    publicKey.replace("-----BEGIN CERTIFICATE-----", "")
+                            .replace("-----END CERTIFICATE-----", ""));
 
-                this.publicCertificate = (X509Certificate) certificateFactory.generateCertificate(new ByteArrayInputStream(buffer));
+            this.publicCertificate = (X509Certificate) certificateFactory.generateCertificate(new ByteArrayInputStream(buffer));
 
-            } catch (CertificateException e) {
-                throw new RuntimeException(e);
-            }
+        } catch (CertificateException e) {
+            throw new RuntimeException(e);
         }
-        return publicCertificate;
     }
 
     public DokumentlagerResponse<InputStream> download(@NonNull UUID dokumentId) {

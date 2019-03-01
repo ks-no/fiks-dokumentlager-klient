@@ -20,7 +20,6 @@ import org.eclipse.jetty.client.util.MultiPartContentProvider;
 import org.eclipse.jetty.client.util.StringContentProvider;
 import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.http.HttpMethod;
-import org.slf4j.MDC;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,13 +28,12 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
 @SuppressWarnings("WeakerAccess")
 public class DokumentlagerApiImpl implements DokumentlagerApi {
-
-    public static final String REQUEST_ID_HEADER = "requestid";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final HttpClient client = new HttpClient();
@@ -45,19 +43,24 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
     private final AuthenticationStrategy authenticationStrategy;
     private final PathHandler pathHandler;
 
+    private final Function<Request, Request> requestInterceptor;
+
     public DokumentlagerApiImpl(@NonNull String uploadbaseUrl,
                                 @NonNull String downloadBaseUrl,
-                                @NonNull AuthenticationStrategy authenticationStrategy) {
-        this(uploadbaseUrl, downloadBaseUrl, authenticationStrategy, new DefaultPathHandler());
+                                @NonNull AuthenticationStrategy authenticationStrategy,
+                                @NonNull Function<Request, Request> requestInterceptor) {
+        this(uploadbaseUrl, downloadBaseUrl, authenticationStrategy, requestInterceptor, new DefaultPathHandler());
     }
 
     public DokumentlagerApiImpl(@NonNull String uploadBaseUrl,
                                 @NonNull String downloadBaseUrl,
                                 @NonNull AuthenticationStrategy authenticationStrategy,
+                                @NonNull Function<Request, Request> requestInterceptor,
                                 @NonNull PathHandler pathHandler) {
         this.uploadbaseUrl = uploadBaseUrl;
         this.downloadBaseUrl = downloadBaseUrl;
         this.authenticationStrategy = authenticationStrategy;
+        this.requestInterceptor = requestInterceptor;
         this.pathHandler = pathHandler;
 
         try {
@@ -73,7 +76,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
                                                                               @NonNull UUID fiksOrganisasjonId,
                                                                               @NonNull UUID kontoId,
                                                                               boolean kryptert) {
-        log.debug("Laster opp {}dokument for organisasjon {} og konto {}: {}", kryptert ? "kryptert " : "", fiksOrganisasjonId, kontoId, metadata);
+        log.debug("Uploading {}dokument for organisasjon {} and konto {}: {}", kryptert ? "encrypted " : "", fiksOrganisasjonId, kontoId, metadata);
         try {
             MultiPartContentProvider multipart = new MultiPartContentProvider();
             multipart.addFieldPart("metadata", new StringContentProvider(objectMapper.writeValueAsString(metadata)), null);
@@ -92,7 +95,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
             if (isError(response.getStatus())) {
                 int status = response.getStatus();
                 String content = IOUtils.toString(listener.getInputStream(), StandardCharsets.UTF_8);
-                throw new DokumentlagerHttpException(String.format("HTTP-feil under opplasting (%d): %s", status, content), status, content);
+                throw new DokumentlagerHttpException(String.format("HTTP-error during upload (%d): %s", status, content), status, content);
             }
 
             return buildResponse(response, objectMapper.readValue(listener.getInputStream(), DokumentMetadataUploadResult.class));
@@ -105,7 +108,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
     public DokumentlagerResponse deleteDokument(@NonNull UUID fiksOrganisasjonId,
                                                 @NonNull UUID kontoId,
                                                 @NonNull UUID dokumentId) {
-        log.debug("Sletter dokument med id {} for organisasjon {} og konto {}", dokumentId, fiksOrganisasjonId, kontoId);
+        log.debug("Deleting dokument with id {} for organisasjon {} and konto {}", dokumentId, fiksOrganisasjonId, kontoId);
         try {
             ContentResponse response = newUploadRequest()
                     .method(HttpMethod.DELETE)
@@ -116,7 +119,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
                 int status = response.getStatus();
                 String content = response.getContentAsString();
                 throw new DokumentlagerHttpException(
-                        String.format("HTTP-feil under sletting (%d): %s", status, content), status, content);
+                        String.format("HTTP-error during delete (%d): %s", status, content), status, content);
             }
 
             return buildResponse(response, null);
@@ -127,7 +130,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
 
     @Override
     public DokumentlagerResponse<InputStream> downloadDokument(@NonNull UUID dokumentId) {
-        log.debug("Laster ned dokument {}", dokumentId);
+        log.debug("Downloading dokument {}", dokumentId);
         try {
             InputStreamResponseListener listener = new InputStreamResponseListener();
             newDownloadRequest()
@@ -140,7 +143,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
                 int status = response.getStatus();
                 String content = IOUtils.toString(listener.getInputStream(), StandardCharsets.UTF_8);
                 throw new DokumentlagerHttpException(
-                        String.format("HTTP-feil under nedlasting (%d): %s", status, content), status, content);
+                        String.format("HTTP-error during download (%d): %s", status, content), status, content);
             }
 
             return buildResponse(response, listener.getInputStream());
@@ -151,7 +154,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
 
     @Override
     public DokumentlagerResponse<String> getPublicKey() {
-        log.debug("Henter public key");
+        log.debug("Getting public key");
         try {
             ContentResponse response = newUploadRequest()
                     .method(HttpMethod.GET)
@@ -162,7 +165,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
                 int status = response.getStatus();
                 String content = response.getContentAsString();
                 throw new DokumentlagerHttpException(
-                        String.format("HTTP-feil under henting av public-key (%d): %s", status, content), status, content);
+                        String.format("HTTP-error getting public-key (%d): %s", status, content), status, content);
             }
 
             return buildResponse(response, response.getContentAsString());
@@ -193,13 +196,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
 
     private Request newRequest(String baseUrl) {
         Request request = client.newRequest(baseUrl);
-
-        if (MDC.get(REQUEST_ID_HEADER) != null) {
-            request = request.header(REQUEST_ID_HEADER, MDC.get(REQUEST_ID_HEADER));
-        }
-
         authenticationStrategy.setAuthenticationHeaders(request);
-
-        return request;
+        return requestInterceptor.apply(request);
     }
 }
