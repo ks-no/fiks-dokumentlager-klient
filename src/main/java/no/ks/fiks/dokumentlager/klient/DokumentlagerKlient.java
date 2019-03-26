@@ -60,6 +60,11 @@ public class DokumentlagerKlient {
         Future krypteringFuture = null;
         InputStream inputStream = dokumentStream;
 
+        if (metadata.getSikkerhetsniva() != null && metadata.getSikkerhetsniva() > 3 && !skalKrypteres) {
+            log.info("Dokument will be encrypted as sikkerhetsnivå is greater than 3");
+            skalKrypteres = true;
+        }
+
         if (skalKrypteres) {
             try {
                 if (publicCertificate == null) {

@@ -136,29 +136,7 @@ class DokumentlagerKlientTest {
     }
 
     @Test
-    @DisplayName("Ved opplasting av et dokument med sikkerhetsnivå 3 og med kryptert-flagg til false skal API kalles med innsendt data")
-    void uploadDokumentNiva3MedFlag() {
-        byte[] data = new byte[16420];
-        new Random().nextBytes(data);
-
-        ByteArrayInputStream dokumentData = new ByteArrayInputStream(data);
-        UUID fiksOrganisasjonId = UUID.randomUUID();
-        UUID kontoId = UUID.randomUUID();
-
-        DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
-                .dokumentnavn("uploadDokumentNiva3UtenFlag.pdf")
-                .mimetype("application/pdf")
-                .ttl(-1L)
-                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
-                .sikkerhetsniva(3)
-                .build();
-
-        klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId, false);
-        verify(api, times(1)).uploadDokument(eq(dokumentData), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(false));
-    }
-
-    @Test
-    @DisplayName("Ved opplasting av et dokument med sikkerhetsnivå 3 og uten kryptert-flagg skal API kalles med innsendt data")
+    @DisplayName("Ved opplasting av et dokument med sikkerhetsnivå 3 og uten kryptert-flagg skal API kalles med ukryptert data")
     void uploadDokumentNiva3UtenFlag() {
         byte[] data = new byte[16420];
         new Random().nextBytes(data);
@@ -180,12 +158,11 @@ class DokumentlagerKlientTest {
     }
 
     @Test
-    @DisplayName("Ved opplasting av et dokument med sikkerhetsnivå 4 og uten kryptert-flagg skal API kalles med innsendt data")
+    @DisplayName("Ved opplasting av et dokument med sikkerhetsnivå 4 og uten kryptert-flagg skal API kalles med kryptert data")
     void uploadDokumentNiva4UtenFlag() {
         byte[] data = new byte[97846];
         new Random().nextBytes(data);
 
-        ByteArrayInputStream dokumentData = new ByteArrayInputStream(data);
         UUID fiksOrganisasjonId = UUID.randomUUID();
         UUID kontoId = UUID.randomUUID();
 
@@ -197,8 +174,9 @@ class DokumentlagerKlientTest {
                 .sikkerhetsniva(4)
                 .build();
 
-        klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId);
-        verify(api, times(1)).uploadDokument(eq(dokumentData), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(false));
+        klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId);
+        verify(api, times(1)).uploadDokument(any(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
+        assertDataEncrypted(data);
     }
 
     @Test
@@ -304,7 +282,7 @@ class DokumentlagerKlientTest {
     }
 
     @Test
-    @DisplayName("Det skal være mulig å laste opp flere dokumenter (nivå 3) samtidig")
+    @DisplayName("Det skal være mulig å laste opp flere dokumenter samtidig")
     void uploadMangeDokumenterSamtidig() {
         byte[] data = new byte[73454215];
         new Random().nextBytes(data);
@@ -343,7 +321,7 @@ class DokumentlagerKlientTest {
     }
 
     @Test
-    @DisplayName("Det skal være mulig å laste opp flere krypterte dokumenter (nivå 4) samtidig")
+    @DisplayName("Det skal være mulig å laste opp flere krypterte dokumenter samtidig")
     void uploadMangeKrypterteDokumenterSamtidig() {
         byte[] data = new byte[55621671];
         new Random().nextBytes(data);
@@ -365,7 +343,7 @@ class DokumentlagerKlientTest {
         for (int i = 0; i < 20; i++) {
             results.add(
                     executorService.submit(() -> {
-                        klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId, true);
+                        klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId);
                     })
             );
         }
@@ -377,7 +355,7 @@ class DokumentlagerKlientTest {
                 throw new RuntimeException(e);
             }
         });
-        verify(api, times(20)).uploadDokument(any(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
+        verify(api, times(20)).uploadDokument(any(), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
         executorService.shutdown();
     }
 }
