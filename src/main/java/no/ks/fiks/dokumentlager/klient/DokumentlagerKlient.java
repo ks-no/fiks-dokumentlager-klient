@@ -52,6 +52,16 @@ public class DokumentlagerKlient {
         return upload(dokumentStream, metadata, fiksOrganisasjonId, kontoId, false);
     }
 
+    public DokumentlagerResponse<DokumentMetadataUploadResult> uploadAlreadyEncrypted(@NonNull InputStream dokumentStream,
+                                                                                      @NonNull DokumentMetadataUpload metadata,
+                                                                                      @NonNull UUID fiksOrganisasjonId,
+                                                                                      @NonNull UUID kontoId) {
+        log.debug("Starting upload...");
+        DokumentlagerResponse<DokumentMetadataUploadResult> response = api.uploadDokument(dokumentStream, metadata, fiksOrganisasjonId, kontoId, true);
+        log.debug("Upload completed");
+        return response;
+    }
+
     public DokumentlagerResponse<DokumentMetadataUploadResult> upload(@NonNull InputStream dokumentStream,
                                                                       @NonNull DokumentMetadataUpload metadata,
                                                                       @NonNull UUID fiksOrganisasjonId,

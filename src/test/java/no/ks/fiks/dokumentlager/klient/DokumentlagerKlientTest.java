@@ -136,7 +136,7 @@ class DokumentlagerKlientTest {
     }
 
     @Test
-    @DisplayName("Ved opplasting av et dokument med sikkerhetsnivå 3 og uten kryptert-flagg skal API kalles med ukryptert data")
+    @DisplayName("Ved opplasting av et dokument med sikkerhetsnivå 3 og uten kryptert-flagg skal API kalles med innsendt data")
     void uploadDokumentNiva3UtenFlag() {
         byte[] data = new byte[16420];
         new Random().nextBytes(data);
@@ -155,6 +155,28 @@ class DokumentlagerKlientTest {
 
         klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId);
         verify(api, times(1)).uploadDokument(eq(dokumentData), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(false));
+    }
+
+    @Test
+    @DisplayName("Ved opplasting av et dokument som allerede er kryptert skal API kalles med innsendt data")
+    void uploadAlreadyEncryptedDokument() {
+        byte[] data = new byte[16420];
+        new Random().nextBytes(data);
+
+        ByteArrayInputStream dokumentData = new ByteArrayInputStream(data);
+        UUID fiksOrganisasjonId = UUID.randomUUID();
+        UUID kontoId = UUID.randomUUID();
+
+        DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
+                .dokumentnavn("uploadAlreadyEncryptedDokument.pdf")
+                .mimetype("application/pdf")
+                .ttl(-1L)
+                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
+                .sikkerhetsniva(3)
+                .build();
+
+        klient.uploadAlreadyEncrypted(dokumentData, metadata, fiksOrganisasjonId, kontoId);
+        verify(api, times(1)).uploadDokument(eq(dokumentData), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
     }
 
     @Test
