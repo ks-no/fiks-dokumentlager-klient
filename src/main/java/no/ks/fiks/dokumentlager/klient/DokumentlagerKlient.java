@@ -9,10 +9,7 @@ import no.ks.kryptering.CMSKrypteringImpl;
 import no.ks.kryptering.CMSStreamKryptering;
 import org.eclipse.jetty.http.HttpStatus;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PipedOutputStream;
+import java.io.*;
 import java.security.Provider;
 import java.security.Security;
 import java.security.cert.CertificateException;
@@ -24,7 +21,7 @@ import java.util.concurrent.*;
 
 @Slf4j
 @SuppressWarnings("WeakerAccess")
-public class DokumentlagerKlient {
+public class DokumentlagerKlient implements Closeable {
 
     private final Provider provider = Security.getProvider("BC");
     private X509Certificate publicCertificate = null;
@@ -159,6 +156,12 @@ public class DokumentlagerKlient {
   }
     public DokumentlagerResponse<InputStream> download(@NonNull UUID dokumentId) {
         return api.downloadDokument(dokumentId);
+    }
+
+    @Override
+    public void close() throws IOException {
+        api.close();
+        executor.shutdown();
     }
 
     public static class DokumentlagerKlientBuilder {

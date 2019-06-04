@@ -22,6 +22,7 @@ import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -199,5 +200,14 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
         Request request = client.newRequest(baseUrl);
         authenticationStrategy.setAuthenticationHeaders(request);
         return requestInterceptor.apply(request);
+    }
+
+    @Override
+    public void close() {
+        try {
+            client.stop();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

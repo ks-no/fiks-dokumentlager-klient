@@ -4,10 +4,11 @@ import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataUpload;
 import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataUploadResult;
 import no.ks.fiks.dokumentlager.klient.model.DokumentlagerResponse;
 
+import java.io.Closeable;
 import java.io.InputStream;
 import java.util.UUID;
 
-public interface DokumentlagerApi {
+public interface DokumentlagerApi extends Closeable {
     DokumentlagerResponse<DokumentMetadataUploadResult> uploadDokument(InputStream dokumentStream,
                                                                        DokumentMetadataUpload metadata,
                                                                        UUID fiksOrganisasjonId,
