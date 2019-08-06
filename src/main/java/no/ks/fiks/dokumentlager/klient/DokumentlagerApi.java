@@ -21,5 +21,7 @@ public interface DokumentlagerApi extends Closeable {
 
     DokumentlagerResponse<InputStream> downloadDokument(UUID dokumentId);
 
+    DokumentlagerResponse<InputStream> downloadDokumentLazy(UUID dokumentId);
+
     DokumentlagerResponse<String> getPublicKey();
 }

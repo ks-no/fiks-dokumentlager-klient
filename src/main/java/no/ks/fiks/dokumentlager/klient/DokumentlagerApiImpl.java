@@ -7,6 +7,7 @@ import no.ks.fiks.dokumentlager.klient.authentication.AuthenticationStrategy;
 import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataUpload;
 import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataUploadResult;
 import no.ks.fiks.dokumentlager.klient.model.DokumentlagerResponse;
+import no.ks.fiks.dokumentlager.klient.model.LazyDokumentlagerResponse;
 import no.ks.fiks.dokumentlager.klient.path.DefaultPathHandler;
 import no.ks.fiks.dokumentlager.klient.path.PathHandler;
 import org.apache.commons.io.IOUtils;
@@ -22,7 +23,6 @@ import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -152,6 +152,11 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
         } catch (InterruptedException | ExecutionException | TimeoutException | IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public DokumentlagerResponse<InputStream> downloadDokumentLazy(@NonNull UUID dokumentId) {
+        return new LazyDokumentlagerResponse(() -> downloadDokument(dokumentId));
     }
 
     @Override

@@ -7,7 +7,6 @@ import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataUploadResult;
 import no.ks.fiks.dokumentlager.klient.model.DokumentlagerResponse;
 import no.ks.kryptering.CMSKrypteringImpl;
 import no.ks.kryptering.CMSStreamKryptering;
-import org.eclipse.jetty.http.HttpStatus;
 
 import java.io.*;
 import java.security.Provider;
@@ -128,34 +127,39 @@ public class DokumentlagerKlient implements Closeable {
         return api.deleteDokument(fiksOrganisasjonId, kontoId, dokumentId);
     }
 
-  public DokumentlagerResponse<String> getPublicKey() {
-      return api.getPublicKey();
-  }
-
-  public DokumentlagerResponse<X509Certificate> getPublicKeyAsX509Certificate() {
-    DokumentlagerResponse<String> publicKeyResponse = getPublicKey();
-    String publicKey = publicKeyResponse.getResult();
-
-    try {
-      CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-      Base64.Decoder base64 = Base64.getMimeDecoder();
-
-      byte[] buffer = base64.decode(
-              publicKey.replace("-----BEGIN CERTIFICATE-----", "")
-                      .replace("-----END CERTIFICATE-----", ""));
-
-      return DokumentlagerResponse.<X509Certificate>builder()
-              .httpStatus(publicKeyResponse.getHttpStatus())
-              .result((X509Certificate) certificateFactory.generateCertificate(new ByteArrayInputStream(buffer)))
-              .build();
-
-    } catch (CertificateException e) {
-      throw new RuntimeException(e);
+    public DokumentlagerResponse<String> getPublicKey() {
+        return api.getPublicKey();
     }
 
-  }
+    public DokumentlagerResponse<X509Certificate> getPublicKeyAsX509Certificate() {
+        DokumentlagerResponse<String> publicKeyResponse = getPublicKey();
+        String publicKey = publicKeyResponse.getResult();
+
+        try {
+            CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+            Base64.Decoder base64 = Base64.getMimeDecoder();
+
+            byte[] buffer = base64.decode(
+                    publicKey.replace("-----BEGIN CERTIFICATE-----", "")
+                            .replace("-----END CERTIFICATE-----", ""));
+
+            return DokumentlagerResponse.<X509Certificate>builder()
+                    .httpStatus(publicKeyResponse.getHttpStatus())
+                    .result((X509Certificate) certificateFactory.generateCertificate(new ByteArrayInputStream(buffer)))
+                    .build();
+
+        } catch (CertificateException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
     public DokumentlagerResponse<InputStream> download(@NonNull UUID dokumentId) {
         return api.downloadDokument(dokumentId);
+    }
+
+    public DokumentlagerResponse<InputStream> downloadLazy(@NonNull UUID dokumentId) {
+        return api.downloadDokumentLazy(dokumentId);
     }
 
     @Override
