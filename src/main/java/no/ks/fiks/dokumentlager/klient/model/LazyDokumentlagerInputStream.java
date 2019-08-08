@@ -49,10 +49,9 @@ public class LazyDokumentlagerInputStream extends InputStream {
 
     @Override
     public void close() throws IOException {
-        if(dokumentlagerResponse.get() == null) {
-            dokumentlagerResponse.set(dokumentlagerResponseRunner.get().run());
+        if(dokumentlagerResponse.get() != null) {
+            dokumentlagerResponse.get().getResult().close();
         }
-        dokumentlagerResponse.get().getResult().close();
     }
 
     @Override
