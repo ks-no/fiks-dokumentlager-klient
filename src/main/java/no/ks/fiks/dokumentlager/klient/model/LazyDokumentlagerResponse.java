@@ -7,11 +7,11 @@ import java.util.concurrent.atomic.AtomicReference;
 public class LazyDokumentlagerResponse extends DokumentlagerResponse<InputStream> {
 
     private AtomicReference<DokumentlagerResponse<InputStream>> dokumentlagerResponse = new AtomicReference<>();
-    private AtomicReference<DokumentlagerResponseRunner> dokumentlagerResponseRunner;
+    private DokumentlagerResponseRunner dokumentlagerResponseRunner;
 
     public LazyDokumentlagerResponse(DokumentlagerResponseRunner dokumentlagerResponseRunner) {
         super(null, 0, null);
-        this.dokumentlagerResponseRunner = new AtomicReference<>(dokumentlagerResponseRunner);
+        this.dokumentlagerResponseRunner = dokumentlagerResponseRunner;
     }
 
     @Override
@@ -25,7 +25,7 @@ public class LazyDokumentlagerResponse extends DokumentlagerResponse<InputStream
     @Override
     public int getHttpStatus() {
         if (dokumentlagerResponse.get() == null) {
-            dokumentlagerResponse.set(dokumentlagerResponseRunner.get().run());
+            dokumentlagerResponse.set(dokumentlagerResponseRunner.run());
         }
         return dokumentlagerResponse.get().getHttpStatus();
     }
@@ -33,7 +33,7 @@ public class LazyDokumentlagerResponse extends DokumentlagerResponse<InputStream
     @Override
     public Optional<String> getHeader(String header) {
         if (dokumentlagerResponse.get() == null) {
-            dokumentlagerResponse.set(dokumentlagerResponseRunner.get().run());
+            dokumentlagerResponse.set(dokumentlagerResponseRunner.run());
         }
         return dokumentlagerResponse.get().getHeader(header);
     }
