@@ -1,5 +1,6 @@
 package no.ks.fiks.dokumentlager.klient;
 
+import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataDownloadResult;
 import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataUpload;
 import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataUploadResult;
 import no.ks.fiks.dokumentlager.klient.model.DokumentlagerResponse;
@@ -22,6 +23,8 @@ public interface DokumentlagerApi extends Closeable {
     DokumentlagerResponse<InputStream> downloadDokument(UUID dokumentId);
 
     DokumentlagerResponse<InputStream> downloadDokumentLazy(UUID dokumentId);
+
+    DokumentlagerResponse<DokumentMetadataDownloadResult> downloadDokumentMetadata(UUID dokumentId);
 
     DokumentlagerResponse<String> getPublicKey();
 }

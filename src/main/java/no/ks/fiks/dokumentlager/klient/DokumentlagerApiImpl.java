@@ -4,10 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import no.ks.fiks.dokumentlager.klient.authentication.AuthenticationStrategy;
-import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataUpload;
-import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataUploadResult;
-import no.ks.fiks.dokumentlager.klient.model.DokumentlagerResponse;
-import no.ks.fiks.dokumentlager.klient.model.LazyDokumentlagerResponse;
+import no.ks.fiks.dokumentlager.klient.model.*;
 import no.ks.fiks.dokumentlager.klient.path.DefaultPathHandler;
 import no.ks.fiks.dokumentlager.klient.path.PathHandler;
 import org.apache.commons.io.IOUtils;
@@ -157,6 +154,28 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
     @Override
     public DokumentlagerResponse<InputStream> downloadDokumentLazy(@NonNull UUID dokumentId) {
         return new LazyDokumentlagerResponse(() -> downloadDokument(dokumentId));
+    }
+
+    @Override
+    public DokumentlagerResponse<DokumentMetadataDownloadResult> downloadDokumentMetadata(@NonNull UUID dokumentId) {
+        log.debug("Downloading metadata for dokument with id {}", dokumentId);
+        try {
+            ContentResponse response = newDownloadRequest()
+                    .method(HttpMethod.GET)
+                    .path(pathHandler.getDownloadMetadataPath(dokumentId))
+                    .send();
+
+            if (isError(response.getStatus())) {
+                int status = response.getStatus();
+                String content = response.getContentAsString();
+                throw new DokumentlagerHttpException(
+                        String.format("HTTP-error during download (%d): %s", status, content), status, content);
+            }
+
+            return buildResponse(response, objectMapper.readValue(response.getContentAsString(), DokumentMetadataDownloadResult.class));
+        } catch (InterruptedException | ExecutionException | TimeoutException | IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

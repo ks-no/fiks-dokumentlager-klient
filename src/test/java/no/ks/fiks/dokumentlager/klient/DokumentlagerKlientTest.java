@@ -1,5 +1,6 @@
 package no.ks.fiks.dokumentlager.klient;
 
+import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataDownloadResult;
 import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataUpload;
 import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataUploadResult;
 import no.ks.fiks.dokumentlager.klient.model.DokumentlagerResponse;
@@ -379,5 +380,27 @@ class DokumentlagerKlientTest {
         });
         verify(api, times(20)).uploadDokument(any(), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
         executorService.shutdown();
+    }
+
+    @Test
+    @DisplayName("Ved nedlasting av dokument-metadata skal API kalles med samme parametere som klienten, og metadata returnert av API skal returneres")
+    void downloadDokumentMetadata() {
+        UUID dokumentId = UUID.randomUUID();
+        DokumentMetadataDownloadResult downloadResult = new DokumentMetadataDownloadResult(UUID.randomUUID(), "dokumentnavn", "application/pdf", 123L, 100L);
+
+        Map<String, String> headers = singletonMap("header", "value");
+
+        when(api.downloadDokumentMetadata(dokumentId)).thenReturn(DokumentlagerResponse.<DokumentMetadataDownloadResult>builder()
+                .result(downloadResult)
+                .httpStatus(200)
+                .httpHeaders(headers)
+                .build());
+
+        DokumentlagerResponse<DokumentMetadataDownloadResult> response = klient.downloadMetadata(dokumentId);
+
+        verify(api, times(1)).downloadDokumentMetadata(dokumentId);
+        assertThat(response.getResult(), is(downloadResult));
+        assertThat(response.getHttpStatus(), is(200));
+        assertThat(response.getHeader("header").get(), is("value"));
     }
 }

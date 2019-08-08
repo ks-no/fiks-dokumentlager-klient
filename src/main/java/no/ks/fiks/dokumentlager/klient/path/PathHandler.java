@@ -7,4 +7,5 @@ public interface PathHandler {
     String getDeletePath(UUID fiksOrganisasjonId, UUID kontoId, UUID dokumentId);
     String getPublicKeyPath();
     String getDownloadPath(UUID dokumentId);
+    String getDownloadMetadataPath(UUID dokumentId);
 }

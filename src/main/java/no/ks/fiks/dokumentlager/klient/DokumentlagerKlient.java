@@ -2,6 +2,7 @@ package no.ks.fiks.dokumentlager.klient;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataDownloadResult;
 import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataUpload;
 import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataUploadResult;
 import no.ks.fiks.dokumentlager.klient.model.DokumentlagerResponse;
@@ -160,6 +161,10 @@ public class DokumentlagerKlient implements Closeable {
 
     public DokumentlagerResponse<InputStream> downloadLazy(@NonNull UUID dokumentId) {
         return api.downloadDokumentLazy(dokumentId);
+    }
+
+    public DokumentlagerResponse<DokumentMetadataDownloadResult> downloadMetadata(@NonNull UUID dokumentId) {
+        return api.downloadDokumentMetadata(dokumentId);
     }
 
     @Override

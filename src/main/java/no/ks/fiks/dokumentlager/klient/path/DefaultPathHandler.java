@@ -25,4 +25,10 @@ public class DefaultPathHandler implements PathHandler {
     public String getDownloadPath(UUID dokumentId) {
         return String.format("/dokumentlager/nedlasting/%s", dokumentId);
     }
+
+    @Override
+    public String getDownloadMetadataPath(UUID dokumentId) {
+        return String.format("/dokumentlager/nedlasting/%s/metadata", dokumentId);
+    }
+
 }
