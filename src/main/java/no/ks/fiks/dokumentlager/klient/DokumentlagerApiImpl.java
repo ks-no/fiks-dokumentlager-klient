@@ -148,6 +148,8 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
         return () -> {
             try {
                 log.debug("Downloading dokument {}", dokumentId);
+                authenticationStrategy.setAuthenticationHeaders(request);
+
                 InputStreamResponseListener listener = new InputStreamResponseListener();
                 request.send(listener);
 
@@ -232,7 +234,6 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
 
     private Request newRequest(String baseUrl) {
         Request request = client.newRequest(baseUrl);
-        authenticationStrategy.setAuthenticationHeaders(request);
         return requestInterceptor.apply(request);
     }
 
