@@ -130,13 +130,12 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
 
     @Override
     public DokumentlagerResponse<InputStream> downloadDokument(@NonNull UUID dokumentId) {
-        log.debug("Downloading dokument {}", dokumentId);
         return createDownloadRequestSupplier(dokumentId).get();
     }
 
     @Override
     public DokumentlagerResponse<InputStream> downloadDokumentLazy(@NonNull UUID dokumentId) {
-        log.debug("Downloading dokument {} lazily", dokumentId);
+        log.debug("Initialized lazy download for dokument {} ", dokumentId);
         Supplier<DokumentlagerResponse<InputStream>> downloadRequestSupplier = createDownloadRequestSupplier(dokumentId);
         return new LazyDokumentlagerResponse(downloadRequestSupplier::get);
     }
@@ -148,6 +147,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
 
         return () -> {
             try {
+                log.debug("Downloading dokument {}", dokumentId);
                 InputStreamResponseListener listener = new InputStreamResponseListener();
                 request.send(listener);
 
