@@ -28,6 +28,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -130,30 +131,39 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
     @Override
     public DokumentlagerResponse<InputStream> downloadDokument(@NonNull UUID dokumentId) {
         log.debug("Downloading dokument {}", dokumentId);
-        try {
-            InputStreamResponseListener listener = new InputStreamResponseListener();
-            newDownloadRequest()
-                    .method(HttpMethod.GET)
-                    .path(pathHandler.getDownloadPath(dokumentId))
-                    .send(listener);
-
-            Response response = listener.get(1, TimeUnit.HOURS);
-            if (isError(response.getStatus())) {
-                int status = response.getStatus();
-                String content = IOUtils.toString(listener.getInputStream(), StandardCharsets.UTF_8);
-                throw new DokumentlagerHttpException(
-                        String.format("HTTP-error during download (%d): %s", status, content), status, content);
-            }
-
-            return buildResponse(response, listener.getInputStream());
-        } catch (InterruptedException | ExecutionException | TimeoutException | IOException e) {
-            throw new RuntimeException(e);
-        }
+        return createDownloadRequestSupplier(dokumentId).get();
     }
 
     @Override
     public DokumentlagerResponse<InputStream> downloadDokumentLazy(@NonNull UUID dokumentId) {
-        return new LazyDokumentlagerResponse(() -> downloadDokument(dokumentId));
+        log.debug("Downloading dokument {} lazily", dokumentId);
+        Supplier<DokumentlagerResponse<InputStream>> downloadRequestSupplier = createDownloadRequestSupplier(dokumentId);
+        return new LazyDokumentlagerResponse(downloadRequestSupplier::get);
+    }
+
+    private Supplier<DokumentlagerResponse<InputStream>> createDownloadRequestSupplier(@NonNull UUID dokumentId) {
+        Request request = newDownloadRequest()
+                .method(HttpMethod.GET)
+                .path(pathHandler.getDownloadPath(dokumentId));
+
+        return () -> {
+            try {
+                InputStreamResponseListener listener = new InputStreamResponseListener();
+                request.send(listener);
+
+                Response response = listener.get(1, TimeUnit.HOURS);
+                if (isError(response.getStatus())) {
+                    int status = response.getStatus();
+                    String content = IOUtils.toString(listener.getInputStream(), StandardCharsets.UTF_8);
+                    throw new DokumentlagerHttpException(
+                            String.format("HTTP-error during download (%d): %s", status, content), status, content);
+                }
+
+                return buildResponse(response, listener.getInputStream());
+            } catch (InterruptedException | ExecutionException | TimeoutException | IOException e) {
+                throw new RuntimeException(e);
+            }
+        };
     }
 
     @Override
