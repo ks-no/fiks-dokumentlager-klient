@@ -8,6 +8,7 @@ import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataUploadResult;
 import no.ks.fiks.dokumentlager.klient.model.DokumentlagerResponse;
 import no.ks.kryptering.CMSKrypteringImpl;
 import no.ks.kryptering.CMSStreamKryptering;
+import org.slf4j.MDC;
 
 import java.io.*;
 import java.security.Provider;
@@ -16,6 +17,8 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.*;
 
@@ -81,8 +84,10 @@ public class DokumentlagerKlient implements Closeable {
                 DokumentlagerPipedInputStream pipedInputStream = new DokumentlagerPipedInputStream();
                 PipedOutputStream pipedOutputStream = new PipedOutputStream(pipedInputStream);
                 inputStream = pipedInputStream;
+                final Map<String, String> contextMap = MDC.getCopyOfContextMap();
 
                 krypteringFuture = executor.submit(() -> {
+                    Optional.ofNullable(contextMap).ifPresent(m -> MDC.setContextMap(m));
                     try {
                         log.debug("Starting encryption...");
                         kryptering.krypterData(pipedOutputStream, dokumentStream, publicCertificate, provider);
@@ -98,6 +103,8 @@ public class DokumentlagerKlient implements Closeable {
                         } catch (IOException e) {
                             log.error("Failed closing encryption OutputStream", e);
                             throw new RuntimeException(e);
+                        } finally {
+                            MDC.clear();
                         }
                     }
                 });
@@ -115,6 +122,7 @@ public class DokumentlagerKlient implements Closeable {
                 krypteringFuture.get(10, TimeUnit.SECONDS);
                 log.debug("Encryption thread terminated");
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                log.error("Encryption failed", e);
                 throw new RuntimeException(e);
             }
         }
