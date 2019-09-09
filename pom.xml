@@ -28,7 +28,7 @@
     <commons-io.version>2.6</commons-io.version>
     <hamcrest.version>2.1</hamcrest.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <revision>1.2.8</revision>
+    <revision>1.2.9</revision>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <validation-api.version>2.0.1.Final</validation-api.version>
     <logback-classic.version>1.2.3</logback-classic.version>
