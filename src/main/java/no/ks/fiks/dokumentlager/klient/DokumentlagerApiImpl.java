@@ -23,6 +23,7 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -219,7 +220,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
         return DokumentlagerResponse.<T>builder()
                 .result(result)
                 .httpStatus(response.getStatus())
-                .httpHeaders(response.getHeaders().stream().collect(Collectors.toMap(HttpField::getName, HttpField::getValue)))
+                .httpHeaders(response.getHeaders().stream().collect(Collectors.toMap(HttpField::getName, HttpField::getValue, (prev, next) -> next, HashMap::new)))
                 .build();
     }
 
