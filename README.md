@@ -8,7 +8,7 @@ Artefakter er tilgjengelig på Maven central.
 <dependency>
   <groupId>no.ks.fiks</groupId>
   <artifactId>dokumentlager-klient</artifactId>
-  <version>1.2.4</version>
+  <version>1.2.9</version>
 </dependency>
 ```
 
