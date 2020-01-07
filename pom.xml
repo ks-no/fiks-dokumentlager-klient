@@ -19,7 +19,7 @@
     <url>https://github.com/ks-no/fiks-dokumentlager-klient</url>
   </scm>
   <properties>
-    <mockito-core.version>3.1.1</mockito-core.version>
+    <mockito-core.version>3.2.7</mockito-core.version>
     <lombok.version>1.18.4</lombok.version>
     <changelist>-SNAPSHOT</changelist>
     <spring-boot.version>2.1.2.RELEASE</spring-boot.version>
