@@ -18,6 +18,7 @@ import org.eclipse.jetty.client.util.MultiPartContentProvider;
 import org.eclipse.jetty.client.util.StringContentProvider;
 import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.http.HttpMethod;
+import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import java.io.IOException;
@@ -213,7 +214,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
     }
 
     private boolean isError(int httpStatus) {
-        return httpStatus >= 400 && httpStatus < 600;
+        return HttpStatus.isClientError(httpStatus) || HttpStatus.isServerError(httpStatus);
     }
 
     private <T> DokumentlagerResponse<T> buildResponse(Response response, T result) {
