@@ -24,7 +24,7 @@
     <changelist>-SNAPSHOT</changelist>
     <spring-boot.version>2.1.2.RELEASE</spring-boot.version>
     <jetty-client.version>9.4.27.v20200227</jetty-client.version>
-    <fiks-kryptering.version>1.0.7</fiks-kryptering.version>
+    <fiks-kryptering.version>1.0.8</fiks-kryptering.version>
     <commons-io.version>2.6</commons-io.version>
     <hamcrest.version>2.2</hamcrest.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
