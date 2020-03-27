@@ -11,4 +11,8 @@ public class EksponertForPerson implements EksponertFor {
     public EksponertForType getType() {
         return EksponertForType.PERSON;
     }
+
+    public String toString() {
+        return "EksponertForPerson(fnr=***********)";
+    }
 }
