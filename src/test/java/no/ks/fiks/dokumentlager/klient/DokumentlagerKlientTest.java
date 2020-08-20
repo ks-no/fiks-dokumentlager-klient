@@ -23,6 +23,7 @@ import java.util.concurrent.*;
 
 import static java.util.Collections.*;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -36,7 +37,7 @@ class DokumentlagerKlientTest {
 
     private final CMSKrypteringImpl kryptering = new CMSKrypteringImpl();
     private final Provider provider = Security.getProvider("BC");
-    private PrivateKey privateKey = getPrivateKey();
+    private final PrivateKey privateKey = getPrivateKey();
 
     private byte[] uploadedBytes;
 
@@ -116,9 +117,10 @@ class DokumentlagerKlientTest {
         when(api.uploadDokument(any(InputStream.class), any(DokumentMetadataUpload.class), any(UUID.class), any(UUID.class), anyBoolean()))
                 .then(a -> {
                     try (InputStream inputStream = a.getArgument(0)) {
+                        DokumentMetadataUpload metadata = a.getArgument(1);
                         uploadedBytes = IOUtils.toByteArray(inputStream);
                         return DokumentlagerResponse.<DokumentMetadataUploadResult>builder()
-                                .result(new DokumentMetadataUploadResult(UUID.randomUUID()))
+                                .result(new DokumentMetadataUploadResult(UUID.randomUUID(), metadata.getDokumentnavn(), metadata.getMimetype(), (long) uploadedBytes.length, (long) uploadedBytes.length + 500))
                                 .httpStatus(200)
                                 .httpHeaders(emptyMap())
                                 .build();
@@ -139,7 +141,7 @@ class DokumentlagerKlientTest {
     @Test
     @DisplayName("Ved opplasting av et dokument med sikkerhetsnivå 3 og uten kryptert-flagg skal API kalles med innsendt data")
     void uploadDokumentNiva3UtenFlag() {
-        byte[] data = new byte[16420];
+        byte[] data = new byte[ThreadLocalRandom.current().nextInt(10000, 100000)];
         new Random().nextBytes(data);
 
         ByteArrayInputStream dokumentData = new ByteArrayInputStream(data);
@@ -161,7 +163,7 @@ class DokumentlagerKlientTest {
     @Test
     @DisplayName("Ved opplasting av et dokument som allerede er kryptert skal API kalles med innsendt data")
     void uploadAlreadyEncryptedDokument() {
-        byte[] data = new byte[16420];
+        byte[] data = new byte[ThreadLocalRandom.current().nextInt(10000, 100000)];
         new Random().nextBytes(data);
 
         ByteArrayInputStream dokumentData = new ByteArrayInputStream(data);
@@ -183,7 +185,7 @@ class DokumentlagerKlientTest {
     @Test
     @DisplayName("Ved opplasting av et dokument med sikkerhetsnivå 4 og uten kryptert-flagg skal API kalles med kryptert data")
     void uploadDokumentNiva4UtenFlag() {
-        byte[] data = new byte[97846];
+        byte[] data = new byte[ThreadLocalRandom.current().nextInt(10000, 100000)];
         new Random().nextBytes(data);
 
         UUID fiksOrganisasjonId = UUID.randomUUID();
@@ -205,7 +207,7 @@ class DokumentlagerKlientTest {
     @Test
     @DisplayName("Ved opplasting av et dokument med kryptert-flagg satt skal klienten kryptere dokumentet før opplasting")
     void uploadDokumentKryptert() {
-        byte[] data = new byte[12243];
+        byte[] data = new byte[ThreadLocalRandom.current().nextInt(10000, 100000)];
         new Random().nextBytes(data);
 
         UUID fiksOrganisasjonId = UUID.randomUUID();
@@ -224,6 +226,33 @@ class DokumentlagerKlientTest {
         assertDataEncrypted(data);
     }
 
+    @Test
+    @DisplayName("Ved opplasting av et dokument skal korrekt metadata returneres")
+    void uploadMetadata() {
+        byte[] data = new byte[ThreadLocalRandom.current().nextInt(10000, 100000)];
+        new Random().nextBytes(data);
+        String dokumentnavn = UUID.randomUUID().toString();
+        String mimetype = UUID.randomUUID().toString();
+
+        UUID fiksOrganisasjonId = UUID.randomUUID();
+        UUID kontoId = UUID.randomUUID();
+
+        DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
+                .dokumentnavn(dokumentnavn)
+                .mimetype(mimetype)
+                .ttl(-1L)
+                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
+                .sikkerhetsniva(3)
+                .build();
+
+        DokumentlagerResponse<DokumentMetadataUploadResult> upload = klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, false);
+        assertThat(upload.getResult(), notNullValue());
+        assertThat(upload.getResult().getDokumentnavn(), is(dokumentnavn));
+        assertThat(upload.getResult().getMimeType(), is(mimetype));
+        assertThat(upload.getResult().getUkryptertStorrelse(), is((long) data.length));
+        assertThat(upload.getResult().getKryptertStorrelse(), is((long) data.length + 500));
+    }
+
     private void assertDataEncrypted(byte[] originalData) {
         byte[] decryptedData = kryptering.dekrypterData(uploadedBytes, privateKey, provider);
         assertArrayEquals(originalData, decryptedData);
@@ -232,7 +261,7 @@ class DokumentlagerKlientTest {
     @Test
     @DisplayName("Ved opplasting skal public key caches etter første request")
     void uploadDokumentPublicKeyCaches() {
-        byte[] data = new byte[33333];
+        byte[] data = new byte[ThreadLocalRandom.current().nextInt(10000, 100000)];
         new Random().nextBytes(data);
 
         UUID fiksOrganisasjonId = UUID.randomUUID();
@@ -307,7 +336,7 @@ class DokumentlagerKlientTest {
     @Test
     @DisplayName("Det skal være mulig å laste opp flere dokumenter samtidig")
     void uploadMangeDokumenterSamtidig() {
-        byte[] data = new byte[73454215];
+        byte[] data = new byte[ThreadLocalRandom.current().nextInt(10000000, 100000000)];
         new Random().nextBytes(data);
 
         ByteArrayInputStream dokumentData = new ByteArrayInputStream(data);
@@ -346,7 +375,7 @@ class DokumentlagerKlientTest {
     @Test
     @DisplayName("Det skal være mulig å laste opp flere krypterte dokumenter samtidig")
     void uploadMangeKrypterteDokumenterSamtidig() {
-        byte[] data = new byte[55621671];
+        byte[] data = new byte[ThreadLocalRandom.current().nextInt(10000000, 100000000)];
         new Random().nextBytes(data);
 
         ByteArrayInputStream dokumentData = new ByteArrayInputStream(data);
