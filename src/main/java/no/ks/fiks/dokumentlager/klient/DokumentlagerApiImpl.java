@@ -1,5 +1,6 @@
 package no.ks.fiks.dokumentlager.klient;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +38,8 @@ import java.util.stream.Collectors;
 @SuppressWarnings("WeakerAccess")
 public class DokumentlagerApiImpl implements DokumentlagerApi {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     private final HttpClient client = new HttpClient(new SslContextFactory.Client());
 
     private final String uploadbaseUrl;
