@@ -19,25 +19,25 @@
     <url>https://github.com/ks-no/fiks-dokumentlager-klient</url>
   </scm>
   <properties>
-    <mockito-core.version>3.5.2</mockito-core.version>
-    <lombok.version>1.18.12</lombok.version>
-    <changelist>-SNAPSHOT</changelist>
-    <spring-boot.version>2.1.2.RELEASE</spring-boot.version>
-    <jetty-client.version>9.4.31.v20200723</jetty-client.version>
-    <fiks-kryptering.version>1.0.10</fiks-kryptering.version>
-    <commons-io.version>2.7</commons-io.version>
-    <hamcrest.version>2.2</hamcrest.version>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <revision>1.2.14</revision>
+    <java.version>1.8</java.version>
     <maven.compiler.source>${java.version}</maven.compiler.source>
+    <jackson.version>2.11.2</jackson.version>
+    <hamcrest.version>2.2</hamcrest.version>
+    <spring-boot.version>2.1.2.RELEASE</spring-boot.version>
+    <revision>1.2.15</revision>
+    <lombok.version>1.18.12</lombok.version>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+    <junit-jupiter.version>5.6.2</junit-jupiter.version>
+    <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
+    <jetty-client.version>9.4.31.v20200723</jetty-client.version>
+    <changelist>-SNAPSHOT</changelist>
+    <fiks-kryptering.version>1.0.10</fiks-kryptering.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <validation-api.version>2.0.1.Final</validation-api.version>
     <logback-classic.version>1.2.3</logback-classic.version>
-    <java.version>1.8</java.version>
-    <maven.compiler.target>${java.version}</maven.compiler.target>
-    <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
-    <jackson.version>2.11.2</jackson.version>
     <fiks-maskinporten-client.version>1.0.15</fiks-maskinporten-client.version>
-    <junit-jupiter.version>5.6.2</junit-jupiter.version>
+    <mockito-core.version>3.5.2</mockito-core.version>
+    <commons-io.version>2.7</commons-io.version>
   </properties>
   <dependencies>
     <dependency>
