@@ -1,9 +1,6 @@
 package no.ks.fiks.dokumentlager.klient;
 
-import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataDownloadResult;
-import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataUpload;
-import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataUploadResult;
-import no.ks.fiks.dokumentlager.klient.model.DokumentlagerResponse;
+import no.ks.fiks.dokumentlager.klient.model.*;
 
 import java.io.Closeable;
 import java.io.InputStream;
@@ -25,6 +22,12 @@ public interface DokumentlagerApi extends Closeable {
     DokumentlagerResponse<InputStream> downloadDokumentLazy(UUID dokumentId);
 
     DokumentlagerResponse<DokumentMetadataDownloadResult> downloadDokumentMetadata(UUID dokumentId);
+
+    DokumentlagerResponse<Sokeresultat> sokDokumenterMedKorrelasjonsid(UUID fiksOrganisasjonId,
+                                                UUID kontoId,
+                                                String korrelasjonsid,
+                                                Integer fra,
+                                                Integer til);
 
     DokumentlagerResponse<String> getPublicKey();
 }

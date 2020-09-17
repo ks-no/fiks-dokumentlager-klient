@@ -17,4 +17,5 @@ public class DokumentMetadataUpload {
     private Long ttl;
     private Set<EksponertFor> eksponertFor;
     private Integer sikkerhetsniva;
+    private String korrelasjonsid;
 }

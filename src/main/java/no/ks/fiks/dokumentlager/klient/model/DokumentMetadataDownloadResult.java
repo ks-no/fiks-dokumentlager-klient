@@ -15,14 +15,16 @@ public class DokumentMetadataDownloadResult {
     private final String mimeType;
     private final Long kryptertStorrelse;
     private final Long ukryptertStorrelse;
+    private final String korrelasjonsid;
 
     @JsonCreator
-    public DokumentMetadataDownloadResult(@JsonProperty("id") @NonNull UUID id, @JsonProperty("dokumentnavn") @NonNull String dokumentnavn, @JsonProperty("mimeType") @NonNull String mimeType, @JsonProperty("kryptertStorrelse") @NonNull Long kryptertStorrelse, @JsonProperty("ukryptertStorrelse") @NonNull Long ukryptertStorrelse) {
+    public DokumentMetadataDownloadResult(@JsonProperty("id") @NonNull UUID id, @JsonProperty("dokumentnavn") @NonNull String dokumentnavn, @JsonProperty("mimeType") @NonNull String mimeType, @JsonProperty("kryptertStorrelse") @NonNull Long kryptertStorrelse, @JsonProperty("ukryptertStorrelse") @NonNull Long ukryptertStorrelse, @JsonProperty("korrelasjonsid") String korrelasjonsid) {
         this.id = id;
         this.dokumentnavn = dokumentnavn;
         this.mimeType = mimeType;
         this.kryptertStorrelse = kryptertStorrelse;
         this.ukryptertStorrelse = ukryptertStorrelse;
+        this.korrelasjonsid = korrelasjonsid;
     }
 
 }
