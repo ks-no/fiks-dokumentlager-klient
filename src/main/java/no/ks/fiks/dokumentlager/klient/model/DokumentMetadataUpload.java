@@ -2,6 +2,7 @@ package no.ks.fiks.dokumentlager.klient.model;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.ToString;
 import lombok.Value;
 import no.ks.fiks.dokumentlager.klient.model.eksponertfor.EksponertFor;
 
@@ -12,6 +13,7 @@ import java.util.Set;
 @Data
 @Builder
 public class DokumentMetadataUpload {
+    @ToString.Exclude
     private String dokumentnavn;
     private String mimetype;
     private Long ttl;
