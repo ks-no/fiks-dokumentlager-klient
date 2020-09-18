@@ -13,5 +13,5 @@ public interface PathHandler {
 
     String getDownloadMetadataPath(UUID dokumentId);
 
-    String getQueryDocumentPath(UUID fiksOrganisasjonId, UUID kontoId, String korrelasjonsid);
+    String getQueryDocumentPath(UUID fiksOrganisasjonId, UUID kontoId);
 }

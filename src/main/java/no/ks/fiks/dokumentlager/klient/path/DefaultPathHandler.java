@@ -32,8 +32,8 @@ public class DefaultPathHandler implements PathHandler {
     }
 
     @Override
-    public String getQueryDocumentPath(UUID fiksOrganisasjonId, UUID kontoId, String korrelasjonsid) {
-        return String.format("%s/%s/kontoer/%s/dokumenter/sok/%s", UPLOAD_BASE_PATH, fiksOrganisasjonId, kontoId, korrelasjonsid);
+    public String getQueryDocumentPath(UUID fiksOrganisasjonId, UUID kontoId) {
+        return String.format("%s/%s/kontoer/%s/dokumenter/sok", UPLOAD_BASE_PATH, fiksOrganisasjonId, kontoId);
     }
 
 }
