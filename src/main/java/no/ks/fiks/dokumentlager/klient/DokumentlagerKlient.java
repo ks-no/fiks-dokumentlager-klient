@@ -2,10 +2,7 @@ package no.ks.fiks.dokumentlager.klient;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataDownloadResult;
-import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataUpload;
-import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataUploadResult;
-import no.ks.fiks.dokumentlager.klient.model.DokumentlagerResponse;
+import no.ks.fiks.dokumentlager.klient.model.*;
 import no.ks.kryptering.CMSKrypteringImpl;
 import no.ks.kryptering.CMSStreamKryptering;
 import org.slf4j.MDC;
@@ -173,6 +170,14 @@ public class DokumentlagerKlient implements Closeable {
 
     public DokumentlagerResponse<DokumentMetadataDownloadResult> downloadMetadata(@NonNull UUID dokumentId) {
         return api.downloadDokumentMetadata(dokumentId);
+    }
+
+    public DokumentlagerResponse<Sokeresultat> sokDokumenterMedKorrelasjonsid(UUID fiksOrganisasjonId,
+                                                                              UUID kontoId,
+                                                                              String korrelasjonsid,
+                                                                              Integer fra,
+                                                                              Integer til){
+        return api.sokDokumenterMedKorrelasjonsid(fiksOrganisasjonId,kontoId,korrelasjonsid,fra,til);
     }
 
     @Override

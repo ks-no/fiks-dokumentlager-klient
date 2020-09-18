@@ -1,9 +1,6 @@
 package no.ks.fiks.dokumentlager.klient;
 
-import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataDownloadResult;
-import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataUpload;
-import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataUploadResult;
-import no.ks.fiks.dokumentlager.klient.model.DokumentlagerResponse;
+import no.ks.fiks.dokumentlager.klient.model.*;
 import no.ks.fiks.dokumentlager.klient.model.eksponertfor.EksponertForIntegrasjon;
 import no.ks.kryptering.CMSKrypteringImpl;
 import no.ks.kryptering.CMSStreamKryptering;
@@ -18,6 +15,7 @@ import java.security.*;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -415,7 +413,7 @@ class DokumentlagerKlientTest {
     @DisplayName("Ved nedlasting av dokument-metadata skal API kalles med samme parametere som klienten, og metadata returnert av API skal returneres")
     void downloadDokumentMetadata() {
         UUID dokumentId = UUID.randomUUID();
-        DokumentMetadataDownloadResult downloadResult = new DokumentMetadataDownloadResult(UUID.randomUUID(), "dokumentnavn", "application/pdf", 123L, 100L);
+        DokumentMetadataDownloadResult downloadResult = new DokumentMetadataDownloadResult(UUID.randomUUID(), "dokumentnavn", "application/pdf", 123L, 100L, UUID.randomUUID().toString());
 
         Map<String, String> headers = singletonMap("header", "value");
 
@@ -432,4 +430,46 @@ class DokumentlagerKlientTest {
         assertThat(response.getHttpStatus(), is(200));
         assertThat(response.getHeader("header").get(), is("value"));
     }
+
+    @Test
+    @DisplayName("Ved søk etter dokumenter med korrelasjonsid skal API kalles med samme parametere som klienten, og metadata returnert av API skal returneres")
+    void sokDokumenterMedKorrelasjonsid() {
+
+        UUID id = UUID.randomUUID();
+        String dokumentnavn = UUID.randomUUID().toString();
+        long kryptertStorrelse = 5;
+        long ukryptertStorrelse = 3;
+        Boolean lest = true;
+        OffsetDateTime opprettet = OffsetDateTime.now();
+        String mimetype = "application/pdf";
+        Boolean slettet = false;
+        String korrelasjonsid = UUID.randomUUID().toString();
+
+        Sokeresultat resultat = new Sokeresultat(1, new ArrayList<Soketreff>( Arrays.asList(new Soketreff(
+                id,
+                dokumentnavn,
+                kryptertStorrelse,
+                ukryptertStorrelse,
+                lest,
+                opprettet,
+                mimetype,
+                slettet,
+                korrelasjonsid
+        ))));
+
+
+        final UUID fiksOrganisasjonId = UUID.randomUUID();
+        final UUID kontoId = UUID.randomUUID();
+        when(api.sokDokumenterMedKorrelasjonsid(fiksOrganisasjonId, kontoId,korrelasjonsid,0, 5)).thenReturn(DokumentlagerResponse.<Sokeresultat>builder()
+                .result(resultat)
+                .httpStatus(200)
+                .build());
+
+        DokumentlagerResponse<Sokeresultat> response = klient.sokDokumenterMedKorrelasjonsid(fiksOrganisasjonId, kontoId, korrelasjonsid, 0 , 5);
+
+        verify(api, times(1)).sokDokumenterMedKorrelasjonsid(fiksOrganisasjonId, kontoId,korrelasjonsid,0, 5);
+        assertThat(response.getResult(), is(resultat));
+        assertThat(response.getHttpStatus(), is(200));
+    }
+
 }

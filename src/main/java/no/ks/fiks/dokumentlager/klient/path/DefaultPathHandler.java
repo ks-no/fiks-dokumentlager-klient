@@ -31,4 +31,9 @@ public class DefaultPathHandler implements PathHandler {
         return String.format("/dokumentlager/nedlasting/%s/metadata", dokumentId);
     }
 
+    @Override
+    public String getQueryDocumentPath(UUID fiksOrganisasjonId, UUID kontoId) {
+        return String.format("%s/%s/kontoer/%s/dokumenter/sok", UPLOAD_BASE_PATH, fiksOrganisasjonId, kontoId);
+    }
+
 }

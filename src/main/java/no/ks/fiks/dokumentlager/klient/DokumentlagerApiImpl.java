@@ -2,12 +2,15 @@ package no.ks.fiks.dokumentlager.klient;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.minidev.json.JSONObject;
 import no.ks.fiks.dokumentlager.klient.authentication.AuthenticationStrategy;
 import no.ks.fiks.dokumentlager.klient.model.*;
 import no.ks.fiks.dokumentlager.klient.path.DefaultPathHandler;
 import no.ks.fiks.dokumentlager.klient.path.PathHandler;
+import org.apache.commons.io.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
@@ -24,6 +27,7 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.UUID;
@@ -66,6 +70,8 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
         this.authenticationStrategy = authenticationStrategy;
         this.requestInterceptor = requestInterceptor;
         this.pathHandler = pathHandler;
+
+        objectMapper.registerModule(new JavaTimeModule());
 
         try {
             this.client.start();
@@ -188,6 +194,31 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
             }
 
             return buildResponse(response, objectMapper.readValue(response.getContentAsString(), DokumentMetadataDownloadResult.class));
+        } catch (InterruptedException | ExecutionException | TimeoutException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public DokumentlagerResponse<Sokeresultat> sokDokumenterMedKorrelasjonsid(UUID fiksOrganisasjonId, UUID kontoId, String korrelasjonsid, Integer fra, Integer til) {
+        log.debug("Search documents with correlationid {}", korrelasjonsid);
+        try {
+            ContentResponse response = newUploadRequest()
+                    .method(HttpMethod.POST)
+                    .path(pathHandler.getQueryDocumentPath(fiksOrganisasjonId, kontoId))
+                    .param("fra", String.valueOf(fra))
+                    .param("til", String.valueOf(til))
+                    .content(new StringContentProvider("application/json","{\"korrelasjonsid\":\""+korrelasjonsid+"\"}", StandardCharsets.UTF_8))
+                    .send();
+
+            if (isError(response.getStatus())) {
+                int status = response.getStatus();
+                String content = response.getContentAsString();
+                throw new DokumentlagerHttpException(
+                        String.format("HTTP-error during document query (%d): %s", status, content), status, content);
+            }
+
+            return buildResponse(response, objectMapper.readValue(response.getContentAsString(), Sokeresultat.class));
         } catch (InterruptedException | ExecutionException | TimeoutException | IOException e) {
             throw new RuntimeException(e);
         }
