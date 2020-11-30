@@ -27,7 +27,7 @@
     <revision>1.3.1</revision>
     <lombok.version>1.18.12</lombok.version>
     <maven.compiler.target>${java.version}</maven.compiler.target>
-    <jackson-datatype-jsr310.version>2.11.0</jackson-datatype-jsr310.version>
+    <jackson-datatype-jsr310.version>2.12.0</jackson-datatype-jsr310.version>
     <junit-jupiter.version>5.7.0</junit-jupiter.version>
     <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
     <jetty-client.version>9.4.31.v20200723</jetty-client.version>
