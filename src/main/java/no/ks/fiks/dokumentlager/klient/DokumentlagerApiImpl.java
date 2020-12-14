@@ -5,12 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import net.minidev.json.JSONObject;
 import no.ks.fiks.dokumentlager.klient.authentication.AuthenticationStrategy;
 import no.ks.fiks.dokumentlager.klient.model.*;
 import no.ks.fiks.dokumentlager.klient.path.DefaultPathHandler;
 import no.ks.fiks.dokumentlager.klient.path.PathHandler;
-import org.apache.commons.io.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
@@ -27,7 +25,6 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.UUID;
@@ -200,7 +197,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
     }
 
     @Override
-    public DokumentlagerResponse<Sokeresultat> sokDokumenterMedKorrelasjonsid(UUID fiksOrganisasjonId, UUID kontoId, String korrelasjonsid, Integer fra, Integer til) {
+    public DokumentlagerResponse<Sokeresultat> sokDokumenterMedKorrelasjonsid(UUID fiksOrganisasjonId, UUID kontoId, UUID korrelasjonsid, Integer fra, Integer til) {
         log.debug("Search documents with correlationid {}", korrelasjonsid);
         try {
             ContentResponse response = newUploadRequest()
