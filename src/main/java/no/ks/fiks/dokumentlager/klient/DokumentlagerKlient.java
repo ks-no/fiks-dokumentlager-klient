@@ -174,10 +174,10 @@ public class DokumentlagerKlient implements Closeable {
 
     public DokumentlagerResponse<Sokeresultat> sokDokumenterMedKorrelasjonsid(UUID fiksOrganisasjonId,
                                                                               UUID kontoId,
-                                                                              String korrelasjonsid,
+                                                                              UUID korrelasjonsid,
                                                                               Integer fra,
-                                                                              Integer til){
-        return api.sokDokumenterMedKorrelasjonsid(fiksOrganisasjonId,kontoId,korrelasjonsid,fra,til);
+                                                                              Integer til) {
+        return api.sokDokumenterMedKorrelasjonsid(fiksOrganisasjonId, kontoId, korrelasjonsid, fra, til);
     }
 
     @Override
@@ -191,7 +191,8 @@ public class DokumentlagerKlient implements Closeable {
         private CMSStreamKryptering kryptering = new CMSKrypteringImpl();
         private int threadPoolSize = 4;
 
-        private DokumentlagerKlientBuilder() { }
+        private DokumentlagerKlientBuilder() {
+        }
 
         public DokumentlagerKlientBuilder api(DokumentlagerApi api) {
             this.api = api;

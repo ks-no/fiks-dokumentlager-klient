@@ -413,7 +413,7 @@ class DokumentlagerKlientTest {
     @DisplayName("Ved nedlasting av dokument-metadata skal API kalles med samme parametere som klienten, og metadata returnert av API skal returneres")
     void downloadDokumentMetadata() {
         UUID dokumentId = UUID.randomUUID();
-        DokumentMetadataDownloadResult downloadResult = new DokumentMetadataDownloadResult(UUID.randomUUID(), "dokumentnavn", "application/pdf", 123L, 100L, UUID.randomUUID().toString());
+        DokumentMetadataDownloadResult downloadResult = new DokumentMetadataDownloadResult(UUID.randomUUID(), "dokumentnavn", "application/pdf", 123L, 100L, UUID.randomUUID());
 
         Map<String, String> headers = singletonMap("header", "value");
 
@@ -443,9 +443,9 @@ class DokumentlagerKlientTest {
         OffsetDateTime opprettet = OffsetDateTime.now();
         String mimetype = "application/pdf";
         Boolean slettet = false;
-        String korrelasjonsid = UUID.randomUUID().toString();
+        UUID korrelasjonsid = UUID.randomUUID();
 
-        Sokeresultat resultat = new Sokeresultat(1, new ArrayList<Soketreff>( Arrays.asList(new Soketreff(
+        Sokeresultat resultat = new Sokeresultat(1, new ArrayList<>(singletonList(new Soketreff(
                 id,
                 dokumentnavn,
                 kryptertStorrelse,

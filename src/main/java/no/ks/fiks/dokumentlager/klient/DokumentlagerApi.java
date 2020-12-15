@@ -24,10 +24,10 @@ public interface DokumentlagerApi extends Closeable {
     DokumentlagerResponse<DokumentMetadataDownloadResult> downloadDokumentMetadata(UUID dokumentId);
 
     DokumentlagerResponse<Sokeresultat> sokDokumenterMedKorrelasjonsid(UUID fiksOrganisasjonId,
-                                                UUID kontoId,
-                                                String korrelasjonsid,
-                                                Integer fra,
-                                                Integer til);
+                                                                       UUID kontoId,
+                                                                       UUID korrelasjonsid,
+                                                                       Integer fra,
+                                                                       Integer til);
 
     DokumentlagerResponse<String> getPublicKey();
 }
