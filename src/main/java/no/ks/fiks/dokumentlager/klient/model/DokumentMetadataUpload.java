@@ -18,4 +18,5 @@ public class DokumentMetadataUpload {
     private Set<EksponertFor> eksponertFor;
     private Integer sikkerhetsniva;
     private UUID korrelasjonsid;
+    private Boolean lagreDokumentLastetNed;
 }
