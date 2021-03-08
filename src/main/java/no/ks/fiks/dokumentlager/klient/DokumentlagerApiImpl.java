@@ -26,6 +26,7 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -36,12 +37,14 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Slf4j
-@SuppressWarnings("WeakerAccess")
 public class DokumentlagerApiImpl implements DokumentlagerApi {
 
     private final ObjectMapper objectMapper = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    private final HttpClient client = new HttpClient(new SslContextFactory.Client());
+
+    private final HttpClient client;
+    private final Duration uploadTimeout;
+    private final Duration downloadTimeout;
 
     private final String uploadbaseUrl;
     private final String downloadBaseUrl;
@@ -50,23 +53,22 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
 
     private final Function<Request, Request> requestInterceptor;
 
-    public DokumentlagerApiImpl(@NonNull String uploadbaseUrl,
-                                @NonNull String downloadBaseUrl,
-                                @NonNull AuthenticationStrategy authenticationStrategy,
-                                @NonNull Function<Request, Request> requestInterceptor) {
-        this(uploadbaseUrl, downloadBaseUrl, authenticationStrategy, requestInterceptor, new DefaultPathHandler());
-    }
-
-    public DokumentlagerApiImpl(@NonNull String uploadBaseUrl,
-                                @NonNull String downloadBaseUrl,
-                                @NonNull AuthenticationStrategy authenticationStrategy,
-                                @NonNull Function<Request, Request> requestInterceptor,
-                                @NonNull PathHandler pathHandler) {
+    private DokumentlagerApiImpl(@NonNull String uploadBaseUrl,
+                                 @NonNull String downloadBaseUrl,
+                                 @NonNull AuthenticationStrategy authenticationStrategy,
+                                 Function<Request, Request> requestInterceptor,
+                                 @NonNull PathHandler pathHandler,
+                                 @NonNull HttpConfiguration httpConfiguration) {
         this.uploadbaseUrl = uploadBaseUrl;
         this.downloadBaseUrl = downloadBaseUrl;
         this.authenticationStrategy = authenticationStrategy;
         this.requestInterceptor = requestInterceptor;
         this.pathHandler = pathHandler;
+
+        this.client = new HttpClient(new SslContextFactory.Client());
+        this.client.setIdleTimeout(httpConfiguration.getIdleTimeout().toMillis());
+        this.uploadTimeout = httpConfiguration.getUploadTimeout();
+        this.downloadTimeout = httpConfiguration.getDownloadTimeout();
 
         objectMapper.registerModule(new JavaTimeModule());
 
@@ -75,6 +77,10 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static DokumentlagerApiImplBuilder builder() {
+        return new DokumentlagerApiImplBuilder();
     }
 
     @Override
@@ -98,7 +104,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
                     .content(multipart)
                     .send(listener);
 
-            Response response = listener.get(1, TimeUnit.HOURS);
+            Response response = listener.get(uploadTimeout.toMillis(), TimeUnit.MILLISECONDS);
             if (isError(response.getStatus())) {
                 int status = response.getStatus();
                 String content = IOUtils.toString(listener.getInputStream(), StandardCharsets.UTF_8);
@@ -159,7 +165,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
                 InputStreamResponseListener listener = new InputStreamResponseListener();
                 request.send(listener);
 
-                Response response = listener.get(1, TimeUnit.HOURS);
+                Response response = listener.get(downloadTimeout.toMillis(), TimeUnit.MILLISECONDS);
                 if (isError(response.getStatus())) {
                     int status = response.getStatus();
                     String content = IOUtils.toString(listener.getInputStream(), StandardCharsets.UTF_8);
@@ -266,7 +272,11 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
     private Request newRequest(String baseUrl) {
         Request request = client.newRequest(baseUrl)
                 .onRequestBegin(authenticationStrategy::setAuthenticationHeaders);
-        return requestInterceptor.apply(request);
+
+        if (requestInterceptor != null) {
+            return requestInterceptor.apply(request);
+        }
+        return request;
     }
 
     @Override
@@ -276,5 +286,56 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static class DokumentlagerApiImplBuilder {
+
+        private String uploadBaseUrl;
+        private String downloadBaseUrl;
+        private AuthenticationStrategy authenticationStrategy;
+        private PathHandler pathHandler;
+        private Function<Request, Request> requestInterceptor;
+        private HttpConfiguration httpConfiguration;
+
+        public DokumentlagerApiImplBuilder uploadBaseUrl(String uploadBaseUrl) {
+            this.uploadBaseUrl = uploadBaseUrl;
+            return this;
+        }
+
+        public DokumentlagerApiImplBuilder downloadBaseUrl(String downloadBaseUrl) {
+            this.downloadBaseUrl = downloadBaseUrl;
+            return this;
+        }
+
+        public DokumentlagerApiImplBuilder authenticationStrategy(AuthenticationStrategy authenticationStrategy) {
+            this.authenticationStrategy = authenticationStrategy;
+            return this;
+        }
+
+        public DokumentlagerApiImplBuilder pathHandler(PathHandler pathHandler) {
+            this.pathHandler = pathHandler;
+            return this;
+        }
+
+        public DokumentlagerApiImplBuilder requestInterceptor(Function<Request, Request> requestInterceptor) {
+            this.requestInterceptor = requestInterceptor;
+            return this;
+        }
+
+        public DokumentlagerApiImplBuilder httpConfiguration(HttpConfiguration httpConfiguration) {
+            this.httpConfiguration = httpConfiguration;
+            return this;
+        }
+
+        public DokumentlagerApiImpl build() {
+            if (pathHandler == null) {
+                pathHandler = new DefaultPathHandler();
+            }
+            if (httpConfiguration == null) {
+                httpConfiguration = HttpConfiguration.builder().build();
+            }
+            return new DokumentlagerApiImpl(uploadBaseUrl, downloadBaseUrl, authenticationStrategy, requestInterceptor, pathHandler, httpConfiguration);
+        }
+
     }
 }
