@@ -11,7 +11,7 @@ Artefakter er tilgjengelig på Maven central.
 <dependency>
   <groupId>no.ks.fiks</groupId>
   <artifactId>dokumentlager-klient</artifactId>
-  <version>1.5.0</version>
+  <version>1.6.0</version>
 </dependency>
 ```
 
