@@ -187,9 +187,12 @@ public class DokumentlagerKlient implements Closeable {
     }
 
     public static class DokumentlagerKlientBuilder {
+
+        private static final int DEFAULT_THREAD_POOL_SIZE = 4;
+
         private DokumentlagerApi api;
-        private CMSStreamKryptering kryptering = new CMSKrypteringImpl();
-        private int threadPoolSize = 4;
+        private CMSStreamKryptering kryptering;
+        private ExecutorService executor;
 
         private DokumentlagerKlientBuilder() {
         }
@@ -204,13 +207,19 @@ public class DokumentlagerKlient implements Closeable {
             return this;
         }
 
-        public DokumentlagerKlientBuilder threadPoolSize(int threadPoolSize) {
-            this.threadPoolSize = threadPoolSize;
+        public DokumentlagerKlientBuilder executor(ExecutorService executor) {
+            this.executor = executor;
             return this;
         }
 
         public DokumentlagerKlient build() {
-            return new DokumentlagerKlient(api, Executors.newFixedThreadPool(threadPoolSize), kryptering);
+            if (kryptering == null) {
+                kryptering = new CMSKrypteringImpl();
+            }
+            if (executor == null) {
+                executor = Executors.newFixedThreadPool(DEFAULT_THREAD_POOL_SIZE);
+            }
+            return new DokumentlagerKlient(api, executor, kryptering);
         }
     }
 }
