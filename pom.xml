@@ -25,7 +25,7 @@
     <hamcrest.version>2.2</hamcrest.version>
     <spring-boot.version>2.1.2.RELEASE</spring-boot.version>
     <revision>1.6.2</revision>
-    <lombok.version>1.18.18</lombok.version>
+    <lombok.version>1.18.20</lombok.version>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <jackson-datatype-jsr310.version>2.12.2</jackson-datatype-jsr310.version>
     <junit-jupiter.version>5.7.2</junit-jupiter.version>
