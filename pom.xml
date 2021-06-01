@@ -32,7 +32,7 @@
     <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
     <jetty-client.version>9.4.41.v20210516</jetty-client.version>
     <changelist>-SNAPSHOT</changelist>
-    <fiks-kryptering.version>1.0.11</fiks-kryptering.version>
+    <fiks-kryptering.version>1.0.12</fiks-kryptering.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <validation-api.version>2.0.1.Final</validation-api.version>
     <logback-classic.version>1.2.3</logback-classic.version>

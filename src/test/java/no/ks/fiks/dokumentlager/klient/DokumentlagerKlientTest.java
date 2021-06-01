@@ -11,6 +11,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.NoRouteToHostException;
 import java.security.*;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
@@ -23,8 +24,7 @@ import static java.util.Collections.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -222,6 +222,91 @@ class DokumentlagerKlientTest {
         klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true);
         verify(api, times(1)).uploadDokument(any(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
         assertDataEncrypted(data);
+    }
+
+    @Test
+    @DisplayName("Ved opplasting av et dokument hvis APIet er nede skal riktig exception kastes")
+    void uploadDokumentApiError() {
+        Exception expected = new NoRouteToHostException("No route to host");
+        byte[] data = new byte[ThreadLocalRandom.current().nextInt(10000, 100000)];
+        new Random().nextBytes(data);
+        UUID fiksOrganisasjonId = UUID.randomUUID();
+        UUID kontoId = UUID.randomUUID();
+        DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
+                .dokumentnavn("uploadDokumentKryptert.pdf")
+                .mimetype("application/pdf")
+                .ttl(-1L)
+                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
+                .sikkerhetsniva(3)
+                .build();
+
+        DokumentlagerApi api = mock(DokumentlagerApi.class);
+        when(api.getPublicKey()).thenReturn(DokumentlagerResponse.<String>builder()
+                .result(PUBLIC_KEY)
+                .httpStatus(200)
+                .build());
+        when(api.uploadDokument(any(InputStream.class), any(DokumentMetadataUpload.class), any(UUID.class), any(UUID.class), anyBoolean()))
+                .then(a -> {
+                        throw new NoRouteToHostException("No route to host");
+                    });
+        DokumentlagerKlient klient = DokumentlagerKlient.builder()
+                .api(api)
+                .build();
+
+        NoRouteToHostException exception = assertThrows(NoRouteToHostException.class, () ->
+                klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true));
+        assertThat(exception.getMessage(), is(expected.getMessage()));
+        verify(api, times(1)).uploadDokument(any(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
+    }
+
+    @Test
+    @DisplayName("Ved opplasting av et dokument hvis APIet er nede skal futures bli kansellert og thread pool ryddet opp i")
+    void uploadDokumentApiErrorCleanThreadPool() {
+        byte[] data = new byte[ThreadLocalRandom.current().nextInt(10000, 100000)];
+        new Random().nextBytes(data);
+        UUID fiksOrganisasjonId = UUID.randomUUID();
+        UUID kontoId = UUID.randomUUID();
+        DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
+                .dokumentnavn("uploadDokumentKryptert.pdf")
+                .mimetype("application/pdf")
+                .ttl(-1L)
+                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
+                .sikkerhetsniva(3)
+                .build();
+
+        DokumentlagerApi api = mock(DokumentlagerApi.class);
+        when(api.getPublicKey()).thenReturn(DokumentlagerResponse.<String>builder()
+                .result(PUBLIC_KEY)
+                .httpStatus(200)
+                .build());
+        when(api.uploadDokument(any(InputStream.class), any(DokumentMetadataUpload.class), any(UUID.class), any(UUID.class), anyBoolean()))
+                .then(a -> {
+                    throw new NoRouteToHostException("No route to host");
+                })
+                .thenAnswer(a -> {
+                    throw new NoRouteToHostException("No route to host");
+                })
+                .thenAnswer(a -> {
+                    try (InputStream inputStream = a.getArgument(0)) {
+                    uploadedBytes = IOUtils.toByteArray(inputStream);
+                    return DokumentlagerResponse.<DokumentMetadataUploadResult>builder()
+                        .result(new DokumentMetadataUploadResult(UUID.randomUUID(), metadata.getDokumentnavn(), metadata.getMimetype(), (long) uploadedBytes.length, (long) uploadedBytes.length + 500))
+                        .httpStatus(200)
+                        .httpHeaders(emptyMap())
+                        .build();
+                    }
+                });
+        DokumentlagerKlient klient = DokumentlagerKlient.builder()
+                .api(api)
+                .executor(Executors.newFixedThreadPool(2))
+                .build();
+
+        assertThrows(NoRouteToHostException.class, () ->
+                klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true));
+        assertThrows(NoRouteToHostException.class, () ->
+                klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true));
+        DokumentlagerResponse<DokumentMetadataUploadResult> dokumentlagerResponse = klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true);
+        assertThat(dokumentlagerResponse.getHttpStatus(), is(200));
     }
 
     @Test
