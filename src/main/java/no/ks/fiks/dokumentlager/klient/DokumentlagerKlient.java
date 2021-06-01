@@ -109,22 +109,29 @@ public class DokumentlagerKlient implements Closeable {
                 throw new RuntimeException(e);
             }
         }
-        log.debug("Starting upload...");
-        DokumentlagerResponse<DokumentMetadataUploadResult> response = api.uploadDokument(inputStream, metadata, fiksOrganisasjonId, kontoId, skalKrypteres);
-        log.debug("Upload completed");
+        try {
+            log.debug("Starting upload...");
+            DokumentlagerResponse<DokumentMetadataUploadResult> response = api.uploadDokument(inputStream, metadata, fiksOrganisasjonId, kontoId, skalKrypteres);
+            log.debug("Upload completed");
 
-        if (krypteringFuture != null) {
-            try {
-                log.debug("Waiting for encryption thread to terminate...");
-                krypteringFuture.get(10, TimeUnit.SECONDS);
-                log.debug("Encryption thread terminated");
-            } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                log.error("Encryption failed", e);
-                throw new RuntimeException(e);
+            if (krypteringFuture != null) {
+                try {
+                    log.debug("Waiting for encryption thread to terminate...");
+                    krypteringFuture.get(10, TimeUnit.SECONDS);
+                    log.debug("Encryption thread terminated");
+                } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                    log.error("Encryption failed", e);
+                    krypteringFuture.cancel(true);
+                    throw new RuntimeException(e);
+                }
             }
+            return response;
+        } catch (Exception e) {
+            if (krypteringFuture != null && !krypteringFuture.isCancelled()) {
+                krypteringFuture.cancel(true);
+            }
+            throw e;
         }
-
-        return response;
     }
 
     public DokumentlagerResponse delete(@NonNull UUID fiksOrganisasjonId,
