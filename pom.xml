@@ -9,7 +9,7 @@
   </parent>
   <groupId>no.ks.fiks</groupId>
   <artifactId>dokumentlager-klient</artifactId>
-  <version>1.7.0</version>
+  <version>1.7.1-SNAPSHOT</version>
   <name>Fiks Dokumentlager Java-klient</name>
   <description>Klient for opplasting, sletting og nedlasting av dokumenter fra Fiks Dokumentlager</description>
   <url>https://github.com/ks-no/fiks-dokumentlager-klient</url>
