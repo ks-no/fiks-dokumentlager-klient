@@ -1,6 +1,8 @@
 # Dokumentlager Klient
+![GitHub License](https://img.shields.io/github/license/ks-no/fiks-dokumentlager-klient)
 [![Maven Central](https://img.shields.io/maven-central/v/no.ks.fiks/dokumentlager-klient)](https://search.maven.org/artifact/no.ks.fiks/dokumentlager-klient)
-![GitHub](https://img.shields.io/github/license/ks-no/fiks-dokumentlager-klient)
+![GitHub Release Date](https://img.shields.io/github/release-date/ks-no/fiks-dokumentlager-klient.svg)
+![GitHub Last Commit](https://img.shields.io/github/last-commit/ks-no/fiks-dokumentlager-klient.svg)
 
 Klient for å laste opp, slette og laste ned dokumenter fra Fiks Dokumentlager.
 
@@ -11,7 +13,7 @@ Artefakter er tilgjengelig på Maven central.
 <dependency>
   <groupId>no.ks.fiks</groupId>
   <artifactId>dokumentlager-klient</artifactId>
-  <version>1.6.3</version>
+  <version>x.x.x</version>
 </dependency>
 ```
 
