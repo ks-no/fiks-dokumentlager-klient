@@ -33,7 +33,7 @@
     <fiks-kryptering.version>1.1.0</fiks-kryptering.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <validation-api.version>2.0.1.Final</validation-api.version>
-    <logback-classic.version>1.2.3</logback-classic.version>
+    <logback-classic.version>1.2.5</logback-classic.version>
     <fiks-maskinporten-client.version>1.2.0</fiks-maskinporten-client.version>
     <mockito-core.version>3.11.2</mockito-core.version>
     <commons-io.version>2.10.0</commons-io.version>
