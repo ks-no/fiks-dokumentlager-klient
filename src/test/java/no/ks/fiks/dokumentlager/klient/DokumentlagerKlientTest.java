@@ -524,7 +524,6 @@ class DokumentlagerKlientTest {
         String dokumentnavn = UUID.randomUUID().toString();
         long kryptertStorrelse = 5;
         long ukryptertStorrelse = 3;
-        Boolean lest = true;
         OffsetDateTime opprettet = OffsetDateTime.now();
         String mimetype = "application/pdf";
         Boolean slettet = false;
@@ -535,7 +534,6 @@ class DokumentlagerKlientTest {
                 dokumentnavn,
                 kryptertStorrelse,
                 ukryptertStorrelse,
-                lest,
                 opprettet,
                 mimetype,
                 slettet,

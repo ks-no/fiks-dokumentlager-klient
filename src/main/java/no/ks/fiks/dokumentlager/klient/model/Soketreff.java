@@ -13,7 +13,6 @@ public class Soketreff {
     String dokumentnavn;
     Long kryptertStorrelse;
     Long ukryptertStorrelse;
-    Boolean lest;
     OffsetDateTime opprettet;
     String mimetype;
     Boolean slettet;
