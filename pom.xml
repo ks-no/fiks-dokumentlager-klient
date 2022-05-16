@@ -26,7 +26,7 @@
     <spring-boot.version>2.1.2.RELEASE</spring-boot.version>
     <lombok.version>1.18.22</lombok.version>
     <maven.compiler.target>${java.version}</maven.compiler.target>
-    <jackson-datatype-jsr310.version>2.13.1</jackson-datatype-jsr310.version>
+    <jackson-datatype-jsr310.version>2.13.3</jackson-datatype-jsr310.version>
     <junit-jupiter.version>5.8.2</junit-jupiter.version>
     <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
     <jetty-client.version>9.4.44.v20210927</jetty-client.version>
