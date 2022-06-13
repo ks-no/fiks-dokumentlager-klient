@@ -2,6 +2,7 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
+
   <parent>
     <groupId>no.ks.fiks.pom</groupId>
     <artifactId>fiks-ekstern-super-pom</artifactId>
@@ -10,40 +11,39 @@
   <groupId>no.ks.fiks</groupId>
   <artifactId>dokumentlager-klient</artifactId>
   <version>1.8.3-SNAPSHOT</version>
+
   <name>Fiks Dokumentlager Java-klient</name>
   <description>Klient for opplasting, sletting og nedlasting av dokumenter fra Fiks Dokumentlager</description>
   <url>https://github.com/ks-no/fiks-dokumentlager-klient</url>
+
   <scm>
     <connection>scm:git:git@github.com:ks-no/fiks-dokumentlager-klient.git</connection>
     <developerConnection>scm:git:git@github.com:ks-no/fiks-dokumentlager-klient.git</developerConnection>
     <url>https://github.com/ks-no/fiks-dokumentlager-klient</url>
   </scm>
+
   <properties>
     <java.version>1.8</java.version>
     <maven.compiler.source>${java.version}</maven.compiler.source>
-    <jackson.version>2.13.3</jackson.version>
-    <hamcrest.version>2.2</hamcrest.version>
-    <spring-boot.version>2.1.2.RELEASE</spring-boot.version>
-    <lombok.version>1.18.24</lombok.version>
     <maven.compiler.target>${java.version}</maven.compiler.target>
-    <jackson-datatype-jsr310.version>2.13.3</jackson-datatype-jsr310.version>
-    <junit-jupiter.version>5.8.2</junit-jupiter.version>
-    <maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
-    <jetty-client.version>9.4.46.v20220331</jetty-client.version>
-    <fiks-kryptering.version>1.1.2</fiks-kryptering.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <validation-api.version>2.0.1.Final</validation-api.version>
-    <logback-classic.version>1.2.11</logback-classic.version>
+
     <fiks-maskinporten-client.version>2.0.5</fiks-maskinporten-client.version>
-    <mockito-core.version>4.6.1</mockito-core.version>
+    <fiks-kryptering.version>1.1.2</fiks-kryptering.version>
+
+    <lombok.version>1.18.24</lombok.version>
+    <jetty-client.version>9.4.46.v20220331</jetty-client.version>
+    <jackson.version>2.13.3</jackson.version>
+    <logback-classic.version>1.2.11</logback-classic.version>
     <commons-io.version>2.11.0</commons-io.version>
+
+    <maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
+    <junit-jupiter.version>5.8.2</junit-jupiter.version>
+    <hamcrest.version>2.2</hamcrest.version>
+    <mockito-core.version>4.6.1</mockito-core.version>
   </properties>
+
   <dependencies>
-    <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
-      <version>${lombok.version}</version>
-    </dependency>
     <dependency>
       <groupId>no.ks.fiks</groupId>
       <artifactId>maskinporten-client</artifactId>
@@ -53,6 +53,13 @@
       <groupId>no.ks.fiks</groupId>
       <artifactId>kryptering</artifactId>
       <version>${fiks-kryptering.version}</version>
+    </dependency>
+
+
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>${lombok.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
@@ -75,15 +82,23 @@
       <version>${jackson.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>${logback-classic.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
       <version>${commons-io.version}</version>
     </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.datatype</groupId>
-      <artifactId>jackson-datatype-jsr310</artifactId>
-      <version>${jackson-datatype-jsr310.version}</version>
-    </dependency>
+
+
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
@@ -108,13 +123,8 @@
       <version>${mockito-core.version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-      <version>${logback-classic.version}</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
+
   <build>
     <plugins>
       <plugin>
