@@ -29,7 +29,7 @@
     <jackson-datatype-jsr310.version>2.13.3</jackson-datatype-jsr310.version>
     <junit-jupiter.version>5.8.2</junit-jupiter.version>
     <maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
-    <jetty-client.version>9.4.44.v20210927</jetty-client.version>
+    <jetty-client.version>10.0.9</jetty-client.version>
     <fiks-kryptering.version>1.1.2</fiks-kryptering.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <validation-api.version>2.0.1.Final</validation-api.version>
