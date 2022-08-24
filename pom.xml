@@ -29,7 +29,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <fiks-maskinporten-client.version>2.1.0</fiks-maskinporten-client.version>
-    <fiks-kryptering.version>1.1.2</fiks-kryptering.version>
+    <fiks-kryptering.version>1.2.0</fiks-kryptering.version>
 
     <lombok.version>1.18.24</lombok.version>
     <jetty-client.version>9.4.48.v20220622</jetty-client.version>
