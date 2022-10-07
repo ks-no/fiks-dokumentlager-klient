@@ -106,6 +106,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
 
             Response response = listener.get(uploadTimeout.toMillis(), TimeUnit.MILLISECONDS);
             if (isError(response.getStatus())) {
+                log.info("Upload request failed with status {}", response.getStatus());
                 int status = response.getStatus();
                 String content = IOUtils.toString(listener.getInputStream(), StandardCharsets.UTF_8);
                 throw new DokumentlagerHttpException(String.format("HTTP-error during upload (%d): %s", status, content), status, content);

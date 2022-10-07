@@ -84,13 +84,13 @@ public class DokumentlagerKlient implements Closeable {
                 final Map<String, String> contextMap = MDC.getCopyOfContextMap();
 
                 krypteringFuture = executor.submit(() -> {
-                    Optional.ofNullable(contextMap).ifPresent(m -> MDC.setContextMap(m));
+                    Optional.ofNullable(contextMap).ifPresent(MDC::setContextMap);
                     try {
                         log.debug("Starting encryption...");
                         kryptering.krypterData(pipedOutputStream, dokumentStream, publicCertificate, provider);
                         log.debug("Encryption completed");
                     } catch (Exception e) {
-                        log.error("Encryption failed, setting exception on encrypted InputStream");
+                        log.error("Encryption failed, setting exception on encrypted InputStream", e);
                         pipedInputStream.setException(e);
                     } finally {
                         try {
@@ -128,7 +128,9 @@ public class DokumentlagerKlient implements Closeable {
             return response;
         } catch (Exception e) {
             if (krypteringFuture != null && !krypteringFuture.isCancelled()) {
-                krypteringFuture.cancel(true);
+                log.debug("Cancelling encryption future");
+                boolean cancelled = krypteringFuture.cancel(true);
+                log.info("Encryption future cancelled, result: {}", cancelled);
             }
             throw e;
         }
