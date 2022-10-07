@@ -34,7 +34,7 @@
     <lombok.version>1.18.24</lombok.version>
     <jetty-client.version>9.4.49.v20220914</jetty-client.version>
     <jackson.version>2.13.4</jackson.version>
-    <logback-classic.version>1.2.11</logback-classic.version>
+    <logback-classic.version>1.4.3</logback-classic.version>
     <commons-io.version>2.11.0</commons-io.version>
 
     <maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
