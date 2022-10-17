@@ -97,25 +97,23 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
             multipart.addFilePart("dokument", metadata.getDokumentnavn(), new InputStreamContentProvider(dokumentStream), null);
             multipart.close();
 
-            InputStreamResponseListener listener = new InputStreamResponseListener();
-            newUploadRequest()
+            ContentResponse response = newUploadRequest()
                     .method(HttpMethod.POST)
                     .path(pathHandler.getUploadPath(fiksOrganisasjonId, kontoId))
                     .param("kryptert", String.valueOf(kryptert))
                     .content(multipart)
                     .timeout(uploadTimeout.toMillis(), TimeUnit.MILLISECONDS)
-                    .send(listener);
+                    .send();
 
-            Result result = listener.await(uploadTimeout.toMillis(), TimeUnit.MILLISECONDS);
-            if (isError(result.getResponse().getStatus())) {
-                log.info("Upload request failed with status {}", result.getResponse().getStatus());
-                int status = result.getResponse().getStatus();
-                String content = IOUtils.toString(listener.getInputStream(), StandardCharsets.UTF_8);
+            if (isError(response.getStatus())) {
+                log.info("Upload request failed with status {}", response.getStatus());
+                int status = response.getStatus();
+                String content = response.getContentAsString();
                 throw new DokumentlagerHttpException(String.format("HTTP-error during upload (%d): %s", status, content), status, content);
             }
 
-            return buildResponse(result.getResponse(), objectMapper.readValue(listener.getInputStream(), DokumentMetadataUploadResult.class));
-        } catch (InterruptedException | TimeoutException | IOException e) {
+            return buildResponse(response, objectMapper.readValue(response.getContent(), DokumentMetadataUploadResult.class));
+        } catch (InterruptedException | TimeoutException | IOException | ExecutionException e) {
             throw new RuntimeException(e);
         }
     }
