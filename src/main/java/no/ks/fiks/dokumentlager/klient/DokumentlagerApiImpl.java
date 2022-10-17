@@ -14,6 +14,7 @@ import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.api.Response;
+import org.eclipse.jetty.client.api.Result;
 import org.eclipse.jetty.client.util.InputStreamContentProvider;
 import org.eclipse.jetty.client.util.InputStreamResponseListener;
 import org.eclipse.jetty.client.util.MultiPartContentProvider;
@@ -102,18 +103,19 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
                     .path(pathHandler.getUploadPath(fiksOrganisasjonId, kontoId))
                     .param("kryptert", String.valueOf(kryptert))
                     .content(multipart)
+                    .timeout(uploadTimeout.toMillis(), TimeUnit.MILLISECONDS)
                     .send(listener);
 
-            Response response = listener.get(uploadTimeout.toMillis(), TimeUnit.MILLISECONDS);
-            if (isError(response.getStatus())) {
-                log.info("Upload request failed with status {}", response.getStatus());
-                int status = response.getStatus();
+            Result result = listener.await(uploadTimeout.toMillis(), TimeUnit.MILLISECONDS);
+            if (isError(result.getResponse().getStatus())) {
+                log.info("Upload request failed with status {}", result.getResponse().getStatus());
+                int status = result.getResponse().getStatus();
                 String content = IOUtils.toString(listener.getInputStream(), StandardCharsets.UTF_8);
                 throw new DokumentlagerHttpException(String.format("HTTP-error during upload (%d): %s", status, content), status, content);
             }
 
-            return buildResponse(response, objectMapper.readValue(listener.getInputStream(), DokumentMetadataUploadResult.class));
-        } catch (InterruptedException | ExecutionException | TimeoutException | IOException e) {
+            return buildResponse(result.getResponse(), objectMapper.readValue(listener.getInputStream(), DokumentMetadataUploadResult.class));
+        } catch (InterruptedException | TimeoutException | IOException e) {
             throw new RuntimeException(e);
         }
     }
