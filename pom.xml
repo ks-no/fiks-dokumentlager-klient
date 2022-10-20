@@ -34,6 +34,7 @@
     <lombok.version>1.18.24</lombok.version>
     <jetty-client.version>9.4.49.v20220914</jetty-client.version>
     <jackson.version>2.13.4</jackson.version>
+    <jackson-databind.version>2.13.4.2</jackson-databind.version>
     <commons-io.version>2.11.0</commons-io.version>
 
     <maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
@@ -80,7 +81,7 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>${jackson.version}</version>
+      <version>${jackson-databind.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.datatype</groupId>
