@@ -14,7 +14,6 @@ import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.api.Response;
-import org.eclipse.jetty.client.api.Result;
 import org.eclipse.jetty.client.util.InputStreamContentProvider;
 import org.eclipse.jetty.client.util.InputStreamResponseListener;
 import org.eclipse.jetty.client.util.MultiPartContentProvider;
@@ -271,8 +270,9 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
     }
 
     private Request newRequest(String baseUrl) {
-        Request request = client.newRequest(baseUrl)
-                .onRequestBegin(authenticationStrategy::setAuthenticationHeaders);
+        Request request = client.newRequest(baseUrl);
+
+        authenticationStrategy.setAuthenticationHeaders(request);
 
         if (requestInterceptor != null) {
             return requestInterceptor.apply(request);
