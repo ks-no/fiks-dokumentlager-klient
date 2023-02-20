@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.ks.fiks.dokumentlager.klient.model.*;
 import no.ks.kryptering.CMSKrypteringImpl;
 import no.ks.kryptering.CMSStreamKryptering;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.MDC;
 
 import java.io.*;
@@ -64,13 +65,15 @@ public class DokumentlagerKlient implements Closeable {
                                                                       @NonNull UUID fiksOrganisasjonId,
                                                                       @NonNull UUID kontoId,
                                                                       boolean skalKrypteres) {
-        Future krypteringFuture = null;
+        Future<?> krypteringFuture = null;
         InputStream inputStream = dokumentStream;
 
         if (metadata.getSikkerhetsniva() != null && metadata.getSikkerhetsniva() > 3 && !skalKrypteres) {
             log.info("Dokument will be encrypted as sikkerhetsnivå is greater than 3");
             skalKrypteres = true;
         }
+
+        final CountDownLatch encryptionStartedLatch = new CountDownLatch(skalKrypteres ? 1 : 0);
 
         if (skalKrypteres) {
             try {
@@ -83,34 +86,15 @@ public class DokumentlagerKlient implements Closeable {
                 inputStream = pipedInputStream;
                 final Map<String, String> contextMap = MDC.getCopyOfContextMap();
 
-                krypteringFuture = executor.submit(() -> {
-                    Optional.ofNullable(contextMap).ifPresent(MDC::setContextMap);
-                    try {
-                        log.debug("Starting encryption...");
-                        kryptering.krypterData(pipedOutputStream, dokumentStream, publicCertificate, provider);
-                        log.debug("Encryption completed");
-                    } catch (Exception e) {
-                        log.error("Encryption failed, setting exception on encrypted InputStream", e);
-                        pipedInputStream.setException(e);
-                    } finally {
-                        try {
-                            log.debug("Closing encryption OutputStream");
-                            pipedOutputStream.close();
-                            log.debug("Encryption OutputStream closed");
-                        } catch (IOException e) {
-                            log.error("Failed closing encryption OutputStream", e);
-                            throw new RuntimeException(e);
-                        } finally {
-                            MDC.clear();
-                        }
-                    }
-                });
+                krypteringFuture = executor.submit(() -> krypter(dokumentStream, encryptionStartedLatch, pipedInputStream, pipedOutputStream, contextMap));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
+
         try {
-            log.debug("Starting upload...");
+            encryptionStartedLatch.await();
+
             DokumentlagerResponse<DokumentMetadataUploadResult> response = api.uploadDokument(inputStream, metadata, fiksOrganisasjonId, kontoId, skalKrypteres);
             log.debug("Upload completed");
 
@@ -126,13 +110,44 @@ public class DokumentlagerKlient implements Closeable {
                 }
             }
             return response;
-        } catch (Exception e) {
-            if (krypteringFuture != null && !krypteringFuture.isCancelled()) {
-                log.debug("Cancelling encryption future");
-                boolean cancelled = krypteringFuture.cancel(true);
-                log.info("Encryption future cancelled, result: {}", cancelled);
-            }
+        } catch (InterruptedException e) {
+            avbrytKrypteringFuture(krypteringFuture);
+            throw new RuntimeException(e);
+        } catch (Exception  e) {
+            avbrytKrypteringFuture(krypteringFuture);
             throw e;
+        }
+    }
+
+    private static void avbrytKrypteringFuture(Future<?> krypteringFuture) {
+        if (krypteringFuture != null && !krypteringFuture.isCancelled()) {
+            log.debug("Cancelling encryption future");
+            boolean cancelled = krypteringFuture.cancel(true);
+            log.info("Encryption future cancelled, result: {}", cancelled);
+        }
+    }
+
+    private void krypter(@NotNull InputStream dokumentStream, CountDownLatch encryptionStartedLatch, DokumentlagerPipedInputStream pipedInputStream, PipedOutputStream pipedOutputStream, Map<String, String> contextMap) {
+        Optional.ofNullable(contextMap).ifPresent(MDC::setContextMap);
+        try {
+            log.debug("Starting encryption...");
+            encryptionStartedLatch.countDown();
+            kryptering.krypterData(pipedOutputStream, dokumentStream, publicCertificate, provider);
+            log.info("Encryption completed...");
+        } catch (Exception e) {
+            log.error("Encryption failed, setting exception on encrypted InputStream", e);
+            pipedInputStream.setException(e);
+        } finally {
+            try {
+                log.debug("Closing encryption OutputStream");
+                pipedOutputStream.close();
+                log.debug("Encryption OutputStream closed");
+            } catch (IOException e) {
+                log.error("Failed closing encryption OutputStream", e);
+                throw new RuntimeException(e);
+            } finally {
+                MDC.clear();
+            }
         }
     }
 
