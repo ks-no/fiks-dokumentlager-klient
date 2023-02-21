@@ -75,24 +75,19 @@ public class DokumentlagerKlient implements Closeable {
 
         final CountDownLatch encryptionStartedLatch = new CountDownLatch(skalKrypteres ? 1 : 0);
 
-        if (skalKrypteres) {
-            try {
+        try (DokumentlagerPipedInputStream pipedInputStream = new DokumentlagerPipedInputStream();
+             PipedOutputStream pipedOutputStream = new PipedOutputStream(pipedInputStream)) {
+
+            if (skalKrypteres) {
                 if (publicCertificate == null) {
                     publicCertificate = getPublicKeyAsX509Certificate().getResult();
                 }
 
-                DokumentlagerPipedInputStream pipedInputStream = new DokumentlagerPipedInputStream();
-                PipedOutputStream pipedOutputStream = new PipedOutputStream(pipedInputStream);
                 inputStream = pipedInputStream;
-                final Map<String, String> contextMap = MDC.getCopyOfContextMap();
 
-                krypteringFuture = executor.submit(() -> krypter(dokumentStream, encryptionStartedLatch, pipedInputStream, pipedOutputStream, contextMap));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+                krypteringFuture = executor.submit(() -> krypter(dokumentStream, encryptionStartedLatch, pipedInputStream, pipedOutputStream, MDC.getCopyOfContextMap()));
             }
-        }
 
-        try {
             encryptionStartedLatch.await();
 
             DokumentlagerResponse<DokumentMetadataUploadResult> response = api.uploadDokument(inputStream, metadata, fiksOrganisasjonId, kontoId, skalKrypteres);
@@ -110,12 +105,13 @@ public class DokumentlagerKlient implements Closeable {
                 }
             }
             return response;
-        } catch (InterruptedException e) {
-            avbrytKrypteringFuture(krypteringFuture);
+        }  catch (IOException e){
+            throw new DokumentlagerIOException(e.getMessage(),e);
+        }  catch (InterruptedException e){
             throw new RuntimeException(e);
-        } catch (Exception  e) {
+        }
+        finally {
             avbrytKrypteringFuture(krypteringFuture);
-            throw e;
         }
     }
 
