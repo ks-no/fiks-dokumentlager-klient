@@ -84,7 +84,6 @@ public class DokumentlagerKlient implements Closeable {
                 }
 
                 inputStream = pipedInputStream;
-
                 krypteringFuture = executor.submit(() -> krypter(dokumentStream, encryptionStartedLatch, pipedInputStream, pipedOutputStream, MDC.getCopyOfContextMap()));
             }
 
@@ -94,20 +93,15 @@ public class DokumentlagerKlient implements Closeable {
             log.debug("Upload completed");
 
             if (krypteringFuture != null) {
-                try {
-                    log.debug("Waiting for encryption thread to terminate...");
-                    krypteringFuture.get(10, TimeUnit.SECONDS);
-                    log.debug("Encryption thread terminated");
-                } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                    log.error("Encryption failed", e);
-                    krypteringFuture.cancel(true);
-                    throw new RuntimeException(e);
-                }
+                log.debug("Waiting for encryption thread to terminate...");
+                krypteringFuture.get(10, TimeUnit.SECONDS);
+                log.debug("Encryption thread terminated");
             }
             return response;
         }  catch (IOException e){
             throw new DokumentlagerIOException(e.getMessage(),e);
-        }  catch (InterruptedException e){
+        }  catch (InterruptedException | ExecutionException | TimeoutException e) {
+            log.error("Upload failed", e);
             throw new RuntimeException(e);
         }
         finally {
