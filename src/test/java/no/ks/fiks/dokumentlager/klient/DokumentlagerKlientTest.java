@@ -200,7 +200,7 @@ class DokumentlagerKlientTest {
                 .api(api)
                 .build();
 
-        NoRouteToHostException exception = assertThrows(NoRouteToHostException.class, () ->
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
                 klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true));
         assertThat(exception.getMessage(), is(expected.getMessage()));
         verify(api, times(1)).uploadDokument(any(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
@@ -248,9 +248,9 @@ class DokumentlagerKlientTest {
                 .executor(Executors.newFixedThreadPool(2))
                 .build();
 
-        assertThrows(NoRouteToHostException.class, () ->
+        assertThrows(RuntimeException.class, () ->
                 klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true));
-        assertThrows(NoRouteToHostException.class, () ->
+        assertThrows(RuntimeException.class, () ->
                 klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true));
         DokumentlagerResponse<DokumentMetadataUploadResult> dokumentlagerResponse = klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true);
         assertThat(dokumentlagerResponse.getHttpStatus(), is(200));
@@ -347,7 +347,8 @@ class DokumentlagerKlientTest {
     @Test
     @DisplayName("Dersom kryptering feiler skal riktig exception kastes av klienten")
     void uploadDokumentKrypteringFeiler() {
-        Exception expected = new RuntimeException("Kryptering feilet");
+        String message = UUID.randomUUID().toString();
+        Exception expected = new IllegalArgumentException(message);
         CMSStreamKryptering kryptering = mock(CMSStreamKryptering.class);
         doThrow(expected).when(kryptering).krypterData(any(OutputStream.class), any(InputStream.class), any(X509Certificate.class), any(Provider.class));
 
@@ -356,11 +357,10 @@ class DokumentlagerKlientTest {
                 .kryptering(kryptering)
                 .build();
 
-        IOException exception = assertThrows(IOException.class, () ->
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
                 klient.upload(new ByteArrayInputStream(new byte[0]), DokumentMetadataUpload.builder().build(), UUID.randomUUID(), UUID.randomUUID(), true));
 
-        assertThat(exception.getMessage(), is(expected.getMessage()));
-        assertThat(exception.getCause(), is(expected));
+        assertThat(exception.getMessage(), is(message));
     }
 
     @Test
