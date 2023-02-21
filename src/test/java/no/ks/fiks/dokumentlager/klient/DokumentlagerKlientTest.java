@@ -206,6 +206,42 @@ class DokumentlagerKlientTest {
         verify(api, times(1)).uploadDokument(any(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
     }
 
+
+    @Test
+    @DisplayName("Dersom IOException kastes i upload, skal DokumentlagerIOException kastes ut")
+    void uploadThrowsDokumentlagerIOException() {
+        Exception expected = new IOException("Pipe closed");
+        byte[] data = new byte[ThreadLocalRandom.current().nextInt(10000, 100000)];
+        new Random().nextBytes(data);
+        UUID fiksOrganisasjonId = UUID.randomUUID();
+        UUID kontoId = UUID.randomUUID();
+        DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
+                .dokumentnavn("uploadDokumentKryptert.pdf")
+                .mimetype("application/pdf")
+                .ttl(-1L)
+                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
+                .sikkerhetsniva(3)
+                .build();
+
+        DokumentlagerApi api = mock(DokumentlagerApi.class);
+        when(api.getPublicKey()).thenReturn(DokumentlagerResponse.<String>builder()
+                .result(PUBLIC_KEY)
+                .httpStatus(200)
+                .build());
+        when(api.uploadDokument(any(InputStream.class), any(DokumentMetadataUpload.class), any(UUID.class), any(UUID.class), anyBoolean()))
+                .then(a -> {
+                    throw expected;
+                });
+        DokumentlagerKlient klient = DokumentlagerKlient.builder()
+                .api(api)
+                .build();
+
+        RuntimeException exception = assertThrows(DokumentlagerIOException.class, () ->
+                klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true));
+        assertThat(exception.getMessage(), is(expected.getMessage()));
+        verify(api, times(1)).uploadDokument(any(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
+    }
+
     @Test
     @DisplayName("Ved opplasting av et dokument hvis APIet er nede skal futures bli kansellert og thread pool ryddet opp i")
     void uploadDokumentApiErrorCleanThreadPool() {
