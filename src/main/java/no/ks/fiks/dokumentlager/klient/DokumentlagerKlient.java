@@ -73,8 +73,6 @@ public class DokumentlagerKlient implements Closeable {
             skalKrypteres = true;
         }
 
-        final CountDownLatch encryptionStartedLatch = new CountDownLatch(skalKrypteres ? 1 : 0);
-
         try (DokumentlagerPipedInputStream pipedInputStream = new DokumentlagerPipedInputStream();
              PipedOutputStream pipedOutputStream = new PipedOutputStream(pipedInputStream)) {
 
@@ -84,20 +82,21 @@ public class DokumentlagerKlient implements Closeable {
                 }
 
                 inputStream = pipedInputStream;
-                krypteringFuture = executor.submit(() -> krypter(dokumentStream, encryptionStartedLatch, pipedInputStream, pipedOutputStream, MDC.getCopyOfContextMap()));
+                krypteringFuture = executor.submit(() -> krypter(dokumentStream, pipedInputStream, pipedOutputStream, MDC.getCopyOfContextMap()));
             }
 
-            encryptionStartedLatch.await();
+            try (PushbackInputStream pis = new PushbackInputStream(inputStream)) {
+                pis.unread(pis.read());
+                DokumentlagerResponse<DokumentMetadataUploadResult> response = api.uploadDokument(pis, metadata, fiksOrganisasjonId, kontoId, skalKrypteres);
+                log.debug("Upload completed");
 
-            DokumentlagerResponse<DokumentMetadataUploadResult> response = api.uploadDokument(inputStream, metadata, fiksOrganisasjonId, kontoId, skalKrypteres);
-            log.debug("Upload completed");
-
-            if (krypteringFuture != null) {
-                log.debug("Waiting for encryption thread to terminate...");
-                krypteringFuture.get(10, TimeUnit.SECONDS);
-                log.debug("Encryption thread terminated");
+                if (krypteringFuture != null) {
+                    log.debug("Waiting for encryption thread to terminate...");
+                    krypteringFuture.get(10, TimeUnit.SECONDS);
+                    log.debug("Encryption thread terminated");
+                }
+                return response;
             }
-            return response;
         }  catch (IOException e){
             throw new DokumentlagerIOException(e.getMessage(),e);
         }  catch (InterruptedException | ExecutionException | TimeoutException e) {
@@ -117,11 +116,10 @@ public class DokumentlagerKlient implements Closeable {
         }
     }
 
-    private void krypter(@NotNull InputStream dokumentStream, CountDownLatch encryptionStartedLatch, DokumentlagerPipedInputStream pipedInputStream, PipedOutputStream pipedOutputStream, Map<String, String> contextMap) {
+    private void krypter(@NotNull InputStream dokumentStream, DokumentlagerPipedInputStream pipedInputStream, PipedOutputStream pipedOutputStream, Map<String, String> contextMap) {
         Optional.ofNullable(contextMap).ifPresent(MDC::setContextMap);
         try {
             log.debug("Starting encryption...");
-            encryptionStartedLatch.countDown();
             kryptering.krypterData(pipedOutputStream, dokumentStream, publicCertificate, provider);
             log.info("Encryption completed...");
         } catch (Exception e) {
