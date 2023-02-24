@@ -7,10 +7,7 @@ import no.ks.kryptering.CMSStreamKryptering;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.*;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.NoRouteToHostException;
 import java.security.*;
 import java.security.cert.X509Certificate;
@@ -102,7 +99,8 @@ class DokumentlagerKlientTest {
                 .build();
 
         klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId);
-        verify(api, times(1)).uploadDokument(eq(dokumentData), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(false));
+        verify(api, times(1)).uploadDokument(isA(PushbackInputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(false));
+        assertThat(uploadedBytes, is(data));
     }
 
     @Test
@@ -405,7 +403,6 @@ class DokumentlagerKlientTest {
         byte[] data = new byte[ThreadLocalRandom.current().nextInt(10000000, 100000000)];
         new Random().nextBytes(data);
 
-        ByteArrayInputStream dokumentData = new ByteArrayInputStream(data);
         UUID fiksOrganisasjonId = UUID.randomUUID();
         UUID kontoId = UUID.randomUUID();
 
@@ -422,7 +419,7 @@ class DokumentlagerKlientTest {
         for (int i = 0; i < 20; i++) {
             results.add(
                     executorService.submit(() -> {
-                        klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId);
+                        klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId);
                     })
             );
         }
@@ -434,7 +431,8 @@ class DokumentlagerKlientTest {
                 throw new RuntimeException(e);
             }
         });
-        verify(api, times(20)).uploadDokument(eq(dokumentData), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(false));
+        verify(api, times(20)).uploadDokument(isA(PushbackInputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(false));
+        assertThat(uploadedBytes, is(data));
         executorService.shutdown();
     }
 
