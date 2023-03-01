@@ -24,6 +24,7 @@ import java.util.concurrent.*;
 @SuppressWarnings("WeakerAccess")
 public class DokumentlagerKlient implements Closeable {
 
+    private static final int END_OF_STREAM = -1;
     private final Provider provider = Security.getProvider("BC");
     private X509Certificate publicCertificate = null;
 
@@ -86,7 +87,11 @@ public class DokumentlagerKlient implements Closeable {
             }
 
             try (PushbackInputStream pis = new PushbackInputStream(inputStream)) {
-                pis.unread(pis.read());
+                int read = pis.read();
+                if(read == END_OF_STREAM){
+                    throw new EmptyDokumentException();
+                }
+                pis.unread(read);
                 DokumentlagerResponse<DokumentMetadataUploadResult> response = api.uploadDokument(pis, metadata, fiksOrganisasjonId, kontoId, skalKrypteres);
                 log.debug("Upload completed");
 
