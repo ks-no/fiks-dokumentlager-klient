@@ -114,7 +114,7 @@ public class DokumentlagerKlient implements Closeable {
     }
 
     private static void avbrytKrypteringFuture(Future<?> krypteringFuture) {
-        if (krypteringFuture != null && !krypteringFuture.isCancelled()) {
+        if (krypteringFuture != null && !krypteringFuture.isDone()) {
             log.debug("Cancelling encryption future");
             boolean cancelled = krypteringFuture.cancel(true);
             log.info("Encryption future cancelled, result: {}", cancelled);
