@@ -120,7 +120,7 @@ class DokumentlagerKlientTest {
                 .build();
 
         EmptyDokumentException exception = assertThrows(EmptyDokumentException.class, () -> klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId));
-        assertThat(exception.getMessage(), is("Dokument uten innhold kan ikke lastes opp"));
+        assertThat(exception.getMessage(), is("Cannot upload document without content"));
     }
 
 
