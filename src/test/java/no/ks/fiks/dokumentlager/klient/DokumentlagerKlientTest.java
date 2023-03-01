@@ -104,6 +104,27 @@ class DokumentlagerKlientTest {
     }
 
     @Test
+    @DisplayName("Opplasting av dokument uten data skal gi feil")
+    void uploadDokumentUtenDataSkalGiFEil() {
+        InputStream dokumentData = new ByteArrayInputStream(new byte[0]);
+
+        UUID fiksOrganisasjonId = UUID.randomUUID();
+        UUID kontoId = UUID.randomUUID();
+
+        DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
+                .dokumentnavn("uploadDokumentNiva3UtenFlag.pdf")
+                .mimetype("application/pdf")
+                .ttl(-1L)
+                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
+                .sikkerhetsniva(3)
+                .build();
+
+        DokumentlagerBadRequestException exception = assertThrows(DokumentlagerBadRequestException.class, () -> klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId));
+        assertThat(exception.getMessage(), is("Dokument uten innhold kan ikke lastes opp"));
+    }
+
+
+    @Test
     @DisplayName("Ved opplasting av et dokument som allerede er kryptert skal API kalles med innsendt data")
     void uploadAlreadyEncryptedDokument() {
         byte[] data = new byte[ThreadLocalRandom.current().nextInt(10000, 100000)];

@@ -86,7 +86,11 @@ public class DokumentlagerKlient implements Closeable {
             }
 
             try (PushbackInputStream pis = new PushbackInputStream(inputStream)) {
-                pis.unread(pis.read());
+                int read = pis.read();
+                if(read == -1){
+                    throw new DokumentlagerBadRequestException("Dokument uten innhold kan ikke lastes opp");
+                }
+                pis.unread(read);
                 DokumentlagerResponse<DokumentMetadataUploadResult> response = api.uploadDokument(pis, metadata, fiksOrganisasjonId, kontoId, skalKrypteres);
                 log.debug("Upload completed");
 
