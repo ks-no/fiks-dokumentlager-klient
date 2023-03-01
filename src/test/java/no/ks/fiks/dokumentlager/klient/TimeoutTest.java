@@ -33,7 +33,7 @@ public class TimeoutTest {
 
     @BeforeAll
     static void setup() {
-        mockServer = new MockServerContainer(DockerImageName.parse("mockserver/mockserver:5.14.0"));
+        mockServer = new MockServerContainer(DockerImageName.parse("mockserver/mockserver:5.15.0"));
         mockServer.start();
 
         mockDokumentlagerPublicKey();
