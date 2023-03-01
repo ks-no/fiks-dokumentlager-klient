@@ -119,7 +119,7 @@ class DokumentlagerKlientTest {
                 .sikkerhetsniva(3)
                 .build();
 
-        DokumentlagerBadRequestException exception = assertThrows(DokumentlagerBadRequestException.class, () -> klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId));
+        EmptyDokumentException exception = assertThrows(EmptyDokumentException.class, () -> klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId));
         assertThat(exception.getMessage(), is("Dokument uten innhold kan ikke lastes opp"));
     }
 
