@@ -42,7 +42,7 @@
     <hamcrest.version>2.2</hamcrest.version>
     <mockito-core.version>5.1.1</mockito-core.version>
     <testcontainers.version>1.17.6</testcontainers.version>
-    <mockserver-client.version>5.14.0</mockserver-client.version>
+    <mockserver-client.version>5.15.0</mockserver-client.version>
   </properties>
 
   <dependencies>
