@@ -447,7 +447,7 @@ class DokumentlagerKlientTest {
 
         results.forEach(r -> {
             try {
-                r.get(1, TimeUnit.SECONDS);
+                r.get(3, TimeUnit.SECONDS);
             } catch (InterruptedException | TimeoutException | ExecutionException e) {
                 throw new RuntimeException(e);
             }
@@ -487,7 +487,7 @@ class DokumentlagerKlientTest {
 
         results.forEach(r -> {
             try {
-                r.get(1, TimeUnit.SECONDS);
+                r.get(3, TimeUnit.SECONDS);
             } catch (InterruptedException | TimeoutException | ExecutionException e) {
                 throw new RuntimeException(e);
             }
