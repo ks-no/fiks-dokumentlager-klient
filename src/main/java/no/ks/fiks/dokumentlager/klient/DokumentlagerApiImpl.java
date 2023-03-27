@@ -14,13 +14,12 @@ import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.api.Response;
-import org.eclipse.jetty.client.util.InputStreamContentProvider;
-import org.eclipse.jetty.client.util.InputStreamResponseListener;
-import org.eclipse.jetty.client.util.MultiPartContentProvider;
-import org.eclipse.jetty.client.util.StringContentProvider;
+import org.eclipse.jetty.client.dynamic.HttpClientTransportDynamic;
+import org.eclipse.jetty.client.util.*;
 import org.eclipse.jetty.http.HttpField;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.io.ClientConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import java.io.IOException;
@@ -65,7 +64,9 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
         this.requestInterceptor = requestInterceptor;
         this.pathHandler = pathHandler;
 
-        this.client = new HttpClient(new SslContextFactory.Client());
+        ClientConnector clientConnector = new ClientConnector();
+        clientConnector.setSslContextFactory(new SslContextFactory.Client());
+        this.client = new HttpClient(new HttpClientTransportDynamic(clientConnector));
         this.client.setIdleTimeout(httpConfiguration.getIdleTimeout().toMillis());
         this.uploadTimeout = httpConfiguration.getUploadTimeout();
         this.downloadTimeout = httpConfiguration.getDownloadTimeout();
@@ -91,16 +92,16 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
                                                                               boolean kryptert) {
         log.debug("Uploading {}dokument for organisasjon {} and konto {}: {}", kryptert ? "encrypted " : "", fiksOrganisasjonId, kontoId, metadata);
         try {
-            MultiPartContentProvider multipart = new MultiPartContentProvider();
-            multipart.addFieldPart("metadata", new StringContentProvider(objectMapper.writeValueAsString(metadata)), null);
-            multipart.addFilePart("dokument", metadata.getDokumentnavn(), new InputStreamContentProvider(dokumentStream), null);
+            MultiPartRequestContent multipart = new MultiPartRequestContent();
+            multipart.addFieldPart("metadata", new StringRequestContent(objectMapper.writeValueAsString(metadata)), null);
+            multipart.addFilePart("dokument", metadata.getDokumentnavn(), new InputStreamRequestContent(dokumentStream), null);
             multipart.close();
 
             ContentResponse response = newUploadRequest()
                     .method(HttpMethod.POST)
                     .path(pathHandler.getUploadPath(fiksOrganisasjonId, kontoId))
                     .param("kryptert", String.valueOf(kryptert))
-                    .content(multipart)
+                    .body(multipart)
                     .timeout(uploadTimeout.toMillis(), TimeUnit.MILLISECONDS)
                     .send();
 
@@ -211,7 +212,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
                     .path(pathHandler.getQueryDocumentPath(fiksOrganisasjonId, kontoId))
                     .param("fra", String.valueOf(fra))
                     .param("til", String.valueOf(til))
-                    .content(new StringContentProvider("application/json","{\"korrelasjonsid\":\""+korrelasjonsid+"\"}", StandardCharsets.UTF_8))
+                    .body(new StringRequestContent("application/json","{\"korrelasjonsid\":\""+korrelasjonsid+"\"}", StandardCharsets.UTF_8))
                     .send();
 
             if (isError(response.getStatus())) {
