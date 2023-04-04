@@ -10,15 +10,14 @@ import no.ks.fiks.dokumentlager.klient.model.*;
 import no.ks.fiks.dokumentlager.klient.path.DefaultPathHandler;
 import no.ks.fiks.dokumentlager.klient.path.PathHandler;
 import org.apache.commons.io.IOUtils;
+import org.apache.hc.core5.http.ContentType;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Request;
 import org.eclipse.jetty.client.api.Response;
 import org.eclipse.jetty.client.dynamic.HttpClientTransportDynamic;
 import org.eclipse.jetty.client.util.*;
-import org.eclipse.jetty.http.HttpField;
-import org.eclipse.jetty.http.HttpMethod;
-import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.http.*;
 import org.eclipse.jetty.io.ClientConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
@@ -93,8 +92,8 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
         log.debug("Uploading {}dokument for organisasjon {} and konto {}: {}", kryptert ? "encrypted " : "", fiksOrganisasjonId, kontoId, metadata);
         try {
             MultiPartRequestContent multipart = new MultiPartRequestContent();
-            multipart.addFieldPart("metadata", new StringRequestContent(objectMapper.writeValueAsString(metadata)), null);
-            multipart.addFilePart("dokument", metadata.getDokumentnavn(), new InputStreamRequestContent(dokumentStream), null);
+            multipart.addFieldPart("metadata", new StringRequestContent(objectMapper.writeValueAsString(metadata)), HttpFields.from(new HttpField(HttpHeader.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType())));
+            multipart.addFilePart("dokument", metadata.getDokumentnavn(), new InputStreamRequestContent(dokumentStream), HttpFields.from(new HttpField(HttpHeader.CONTENT_TYPE, ContentType.APPLICATION_OCTET_STREAM.getMimeType())));
             multipart.close();
 
             ContentResponse response = newUploadRequest()
