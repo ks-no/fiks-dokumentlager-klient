@@ -161,7 +161,7 @@ public class TimeoutTest {
         try {
             getMockServerClient()
                     .when(request()
-                            .withPath(String.format("/dokumentlager/api/v1/%s/kontoer/%s/dokumenter/", fiksOrganisasjonId, kontoId)))
+                            .withPath(String.format("/dokumentlager/api/v1/%s/kontoer/%s/dokumenter", fiksOrganisasjonId, kontoId)))
                     .respond(response()
                             .withDelay(TimeUnit.SECONDS, 10)
                             .withBody(MAPPER.writeValueAsString(new DokumentMetadataUploadResult(UUID.randomUUID(), UUID.randomUUID().toString(), "application/pdf", 0L, 0L))));
