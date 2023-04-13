@@ -36,4 +36,9 @@ public class DefaultPathHandler implements PathHandler {
         return String.format("%s/%s/kontoer/%s/dokumenter/sok", UPLOAD_BASE_PATH, fiksOrganisasjonId, kontoId);
     }
 
+    @Override
+    public String getDeleteByKorrelasjonsidPath(UUID fiksOrganisasjonId, UUID kontoId, UUID korrelasjonsid) {
+        return String.format("%s/%s/kontoer/%s/korrelasjonsid/%s", UPLOAD_BASE_PATH, fiksOrganisasjonId, kontoId, korrelasjonsid);
+    }
+
 }

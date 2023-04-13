@@ -144,10 +144,16 @@ public class DokumentlagerKlient implements Closeable {
         }
     }
 
-    public DokumentlagerResponse delete(@NonNull UUID fiksOrganisasjonId,
-                                        @NonNull UUID kontoId,
-                                        @NonNull UUID dokumentId) {
+    public DokumentlagerResponse<Void> delete(@NonNull UUID fiksOrganisasjonId,
+                                              @NonNull UUID kontoId,
+                                              @NonNull UUID dokumentId) {
         return api.deleteDokument(fiksOrganisasjonId, kontoId, dokumentId);
+    }
+
+    public DokumentlagerResponse<Void> deleteDokumenterByKorrelasjonsid(@NonNull UUID fiksOrganisasjonId,
+                                              @NonNull UUID kontoId,
+                                              @NonNull UUID korrelasjonsid) {
+        return api.deleteDokumenterByKorrelasjonsid(fiksOrganisasjonId, kontoId, korrelasjonsid);
     }
 
     public DokumentlagerResponse<String> getPublicKey() {

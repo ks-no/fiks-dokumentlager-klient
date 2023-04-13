@@ -379,6 +379,18 @@ class DokumentlagerKlientTest {
     }
 
     @Test
+    @DisplayName("Ved sletting av dokumenter via korrelasjonsid skal API kalles med samme parametere som klienten")
+    void deleteDokumenterByKorrelasjonsid() {
+        UUID fiksOrganisasjonId = UUID.randomUUID();
+        UUID kontoId = UUID.randomUUID();
+        UUID korrelasjonsid = UUID.randomUUID();
+
+        klient.deleteDokumenterByKorrelasjonsid(fiksOrganisasjonId, kontoId, korrelasjonsid);
+
+        verify(api, times(1)).deleteDokumenterByKorrelasjonsid(fiksOrganisasjonId, kontoId, korrelasjonsid);
+    }
+
+    @Test
     @DisplayName("Ved nedlasting av et dokument skal API kalles med samme parametere som klienten, og stream returnert av API skal returneres")
     void downloadDokument() {
         UUID dokumentId = UUID.randomUUID();

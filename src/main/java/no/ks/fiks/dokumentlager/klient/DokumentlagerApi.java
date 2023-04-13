@@ -13,9 +13,13 @@ public interface DokumentlagerApi extends Closeable {
                                                                        UUID kontoId,
                                                                        boolean kryptert);
 
-    DokumentlagerResponse deleteDokument(UUID fiksOrganisasjonId,
+    DokumentlagerResponse<Void> deleteDokument(UUID fiksOrganisasjonId,
                                          UUID kontoId,
                                          UUID dokumentId);
+
+    DokumentlagerResponse<Void> deleteDokumenterByKorrelasjonsid(UUID fiksOrganisasjonId,
+                                                                 UUID kontoId,
+                                                                 UUID korrelasjonsid);
 
     DokumentlagerResponse<InputStream> downloadDokument(UUID dokumentId);
 
