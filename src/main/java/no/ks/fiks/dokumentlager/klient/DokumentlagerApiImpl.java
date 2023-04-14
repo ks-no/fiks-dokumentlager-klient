@@ -118,7 +118,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
     }
 
     @Override
-    public DokumentlagerResponse deleteDokument(@NonNull UUID fiksOrganisasjonId,
+    public DokumentlagerResponse<Void> deleteDokument(@NonNull UUID fiksOrganisasjonId,
                                                 @NonNull UUID kontoId,
                                                 @NonNull UUID dokumentId) {
         log.debug("Deleting dokument with id {} for organisasjon {} and konto {}", dokumentId, fiksOrganisasjonId, kontoId);
@@ -133,6 +133,28 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
                 String content = response.getContentAsString();
                 throw new DokumentlagerHttpException(
                         String.format("HTTP-error during delete (%d): %s", status, content), status, content);
+            }
+
+            return buildResponse(response, null);
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public DokumentlagerResponse<Void> deleteDokumenterByKorrelasjonsid(UUID fiksOrganisasjonId, UUID kontoId, UUID korrelasjonsid) {
+        log.debug("Deleting dokumenter with korrelasjonsid {} for organisasjon {} and konto {}", korrelasjonsid, fiksOrganisasjonId, kontoId);
+        try {
+            ContentResponse response = newUploadRequest()
+                    .method(HttpMethod.DELETE)
+                    .path(pathHandler.getDeleteByKorrelasjonsidPath(fiksOrganisasjonId, kontoId, korrelasjonsid))
+                    .send();
+
+            if (isError(response.getStatus())) {
+                int status = response.getStatus();
+                String content = response.getContentAsString();
+                throw new DokumentlagerHttpException(
+                        String.format("HTTP-error during delete by korrelasjonsid (%d): %s", status, content), status, content);
             }
 
             return buildResponse(response, null);
