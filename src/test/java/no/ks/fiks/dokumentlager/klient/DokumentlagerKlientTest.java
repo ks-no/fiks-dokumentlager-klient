@@ -433,7 +433,7 @@ class DokumentlagerKlientTest {
     @Test
     @DisplayName("Det skal være mulig å laste opp flere dokumenter samtidig")
     void uploadMangeDokumenterSamtidig() {
-        byte[] data = new byte[ThreadLocalRandom.current().nextInt(10000000, 100000000)];
+        byte[] data = new byte[ThreadLocalRandom.current().nextInt(10000000, 20000000)];
         new Random().nextBytes(data);
 
         UUID fiksOrganisasjonId = UUID.randomUUID();
