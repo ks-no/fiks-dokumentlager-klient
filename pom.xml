@@ -41,7 +41,7 @@
     <junit-jupiter.version>5.9.2</junit-jupiter.version>
     <hamcrest.version>2.2</hamcrest.version>
     <mockito-core.version>5.2.0</mockito-core.version>
-    <testcontainers.version>1.17.6</testcontainers.version>
+    <testcontainers.version>1.18.0</testcontainers.version>
     <mockserver-client.version>5.15.0</mockserver-client.version>
     <fiks-maskinporten-client.version>3.0.0</fiks-maskinporten-client.version>
   </properties>
