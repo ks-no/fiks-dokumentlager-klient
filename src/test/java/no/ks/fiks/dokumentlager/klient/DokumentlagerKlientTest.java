@@ -94,6 +94,7 @@ class DokumentlagerKlientTest {
                 .dokumentnavn("uploadDokumentNiva3UtenFlag.pdf")
                 .mimetype("application/pdf")
                 .ttl(-1L)
+                .tilgjengeligTil(OffsetDateTime.now())
                 .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
                 .sikkerhetsniva(3)
                 .build();
