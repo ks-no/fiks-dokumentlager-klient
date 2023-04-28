@@ -1,8 +1,5 @@
 package no.ks.fiks.dokumentlager.klient;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import no.ks.fiks.dokumentlager.klient.authentication.AuthenticationStrategy;
@@ -37,8 +34,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DokumentlagerApiImpl implements DokumentlagerApi {
 
-    private final ObjectMapper objectMapper = new ObjectMapper()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private final JsonMapper mapper = new JsonMapper();
 
     private final HttpClient client;
     private final Duration uploadTimeout;
@@ -70,8 +66,6 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
         this.uploadTimeout = httpConfiguration.getUploadTimeout();
         this.downloadTimeout = httpConfiguration.getDownloadTimeout();
 
-        objectMapper.registerModule(new JavaTimeModule());
-
         try {
             this.client.start();
         } catch (Exception e) {
@@ -92,7 +86,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
         log.debug("Uploading {}dokument for organisasjon {} and konto {}: {}", kryptert ? "encrypted " : "", fiksOrganisasjonId, kontoId, metadata);
         try {
             MultiPartRequestContent multipart = new MultiPartRequestContent();
-            multipart.addFieldPart("metadata", new StringRequestContent(objectMapper.writeValueAsString(metadata)), HttpFields.from(new HttpField(HttpHeader.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType())));
+            multipart.addFieldPart("metadata", new StringRequestContent(mapper.toJson(metadata)), HttpFields.from(new HttpField(HttpHeader.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType())));
             multipart.addFilePart("dokument", metadata.getDokumentnavn(), new InputStreamRequestContent(dokumentStream), HttpFields.from(new HttpField(HttpHeader.CONTENT_TYPE, ContentType.APPLICATION_OCTET_STREAM.getMimeType())));
             multipart.close();
 
@@ -111,8 +105,8 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
                 throw new DokumentlagerHttpException(String.format("HTTP-error during upload (%d): %s", status, content), status, content);
             }
 
-            return buildResponse(response, objectMapper.readValue(response.getContent(), DokumentMetadataUploadResult.class));
-        } catch (InterruptedException | TimeoutException | IOException | ExecutionException e) {
+            return buildResponse(response, mapper.fromJson(response.getContent(), DokumentMetadataUploadResult.class));
+        } catch (InterruptedException | TimeoutException | ExecutionException e) {
             throw new RuntimeException(e);
         }
     }
@@ -218,8 +212,8 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
                         String.format("HTTP-error during download (%d): %s", status, content), status, content);
             }
 
-            return buildResponse(response, objectMapper.readValue(response.getContentAsString(), DokumentMetadataDownloadResult.class));
-        } catch (InterruptedException | ExecutionException | TimeoutException | IOException e) {
+            return buildResponse(response, mapper.fromJson(response.getContent(), DokumentMetadataDownloadResult.class));
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
             throw new RuntimeException(e);
         }
     }
@@ -243,8 +237,8 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
                         String.format("HTTP-error during document query (%d): %s", status, content), status, content);
             }
 
-            return buildResponse(response, objectMapper.readValue(response.getContentAsString(), Sokeresultat.class));
-        } catch (InterruptedException | ExecutionException | TimeoutException | IOException e) {
+            return buildResponse(response, mapper.fromJson(response.getContent(), Sokeresultat.class));
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
             throw new RuntimeException(e);
         }
     }
