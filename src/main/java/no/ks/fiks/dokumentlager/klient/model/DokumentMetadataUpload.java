@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.ToString;
 import no.ks.fiks.dokumentlager.klient.model.eksponertfor.EksponertFor;
 
+import java.time.OffsetDateTime;
 import java.util.Set;
 import java.util.UUID;
 
@@ -15,6 +16,7 @@ public class DokumentMetadataUpload {
     private String dokumentnavn;
     private String mimetype;
     private Long ttl;
+    private OffsetDateTime tilgjengeligTil;
     private Set<EksponertFor> eksponertFor;
     private Integer sikkerhetsniva;
     private UUID korrelasjonsid;
