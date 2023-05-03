@@ -5,6 +5,8 @@ import java.util.UUID;
 public interface PathHandler {
     String getUploadPath(UUID fiksOrganisasjonId, UUID kontoId);
 
+    String getUpdateMetadataPath(UUID fiksOrganisasjonId, UUID kontoId, UUID dokumentId);
+
     String getDeletePath(UUID fiksOrganisasjonId, UUID kontoId, UUID dokumentId);
 
     String getPublicKeyPath();

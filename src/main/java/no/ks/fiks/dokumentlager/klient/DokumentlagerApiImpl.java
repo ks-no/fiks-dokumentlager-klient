@@ -112,9 +112,32 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
     }
 
     @Override
+    public DokumentlagerResponse<DokumentMetadataUpdateResult> updateDokumentMetadata(UUID fiksOrganisasjonId, UUID kontoId, UUID dokumentId, DokumentMetadataUpdate update) {
+        log.debug("Updating metadata for dokument with id {} for organisasjon {} and konto {}", dokumentId, fiksOrganisasjonId, kontoId);
+        try {
+            ContentResponse response = newUploadRequest()
+                    .method(HttpMethod.PATCH)
+                    .path(pathHandler.getUpdateMetadataPath(fiksOrganisasjonId, kontoId, dokumentId))
+                    .body(createJsonBody(update))
+                    .send();
+
+            if (isError(response.getStatus())) {
+                int status = response.getStatus();
+                String content = response.getContentAsString();
+                throw new DokumentlagerHttpException(
+                        String.format("HTTP-error during metadata update (%d): %s", status, content), status, content);
+            }
+
+            return buildResponse(response, mapper.fromJson(response.getContent(), DokumentMetadataUpdateResult.class));
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public DokumentlagerResponse<Void> deleteDokument(@NonNull UUID fiksOrganisasjonId,
-                                                @NonNull UUID kontoId,
-                                                @NonNull UUID dokumentId) {
+                                                      @NonNull UUID kontoId,
+                                                      @NonNull UUID dokumentId) {
         log.debug("Deleting dokument with id {} for organisasjon {} and konto {}", dokumentId, fiksOrganisasjonId, kontoId);
         try {
             ContentResponse response = newUploadRequest()
@@ -227,7 +250,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
                     .path(pathHandler.getQueryDocumentPath(fiksOrganisasjonId, kontoId))
                     .param("fra", String.valueOf(fra))
                     .param("til", String.valueOf(til))
-                    .body(new StringRequestContent("application/json","{\"korrelasjonsid\":\""+korrelasjonsid+"\"}", StandardCharsets.UTF_8))
+                    .body(createJsonBody(new Korrelasjonsid(korrelasjonsid)))
                     .send();
 
             if (isError(response.getStatus())) {
@@ -242,6 +265,8 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
             throw new RuntimeException(e);
         }
     }
+
+    private record Korrelasjonsid(UUID korrelasjonsid) {}
 
     @Override
     public DokumentlagerResponse<String> getPublicKey() {
@@ -294,6 +319,10 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
             return requestInterceptor.apply(request);
         }
         return request;
+    }
+
+    private StringRequestContent createJsonBody(Object body) {
+        return new StringRequestContent("application/json", mapper.toJson(body), StandardCharsets.UTF_8);
     }
 
     @Override

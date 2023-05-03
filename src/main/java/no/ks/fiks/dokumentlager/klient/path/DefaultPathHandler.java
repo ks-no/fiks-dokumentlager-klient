@@ -12,6 +12,11 @@ public class DefaultPathHandler implements PathHandler {
     }
 
     @Override
+    public String getUpdateMetadataPath(UUID fiksOrganisasjonId, UUID kontoId, UUID dokumentId) {
+        return String.format("%s/%s/kontoer/%s/dokumenter/%s", UPLOAD_BASE_PATH, fiksOrganisasjonId, kontoId, dokumentId);
+    }
+
+    @Override
     public String getDeletePath(UUID fiksOrganisasjonId, UUID kontoId, UUID dokumentId) {
         return String.format("%s/%s/kontoer/%s/dokumenter/%s", UPLOAD_BASE_PATH, fiksOrganisasjonId, kontoId, dokumentId);
     }
