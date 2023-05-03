@@ -368,6 +368,22 @@ class DokumentlagerKlientTest {
     }
 
     @Test
+    @DisplayName("Ved oppdatering av metadata for et dokument skal API kalles med samme parametere som klienten")
+    void updateDokumentMetadata() {
+        UUID fiksOrganisasjonId = UUID.randomUUID();
+        UUID kontoId = UUID.randomUUID();
+        UUID dokumentId = UUID.randomUUID();
+        DokumentMetadataUpdate metadata = DokumentMetadataUpdate.builder()
+                .ttl(ThreadLocalRandom.current().nextLong())
+                .tilgjengeligTil(OffsetDateTime.now())
+                .build();
+
+        klient.updateMetadata(fiksOrganisasjonId, kontoId, dokumentId, metadata);
+
+        verify(api, times(1)).updateDokumentMetadata(fiksOrganisasjonId, kontoId, dokumentId, metadata);
+    }
+
+    @Test
     @DisplayName("Ved sletting av et dokument skal API kalles med samme parametere som klienten")
     void deleteDokument() {
         UUID fiksOrganisasjonId = UUID.randomUUID();

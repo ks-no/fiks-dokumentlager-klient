@@ -17,7 +17,7 @@ class JsonMapper {
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
 
-    String toJson(DokumentMetadataUpload metadata) {
+    String toJson(Object metadata) {
         try {
             return mapper.writeValueAsString(metadata);
         } catch (JsonProcessingException e) {

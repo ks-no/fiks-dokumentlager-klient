@@ -144,6 +144,13 @@ public class DokumentlagerKlient implements Closeable {
         }
     }
 
+    public DokumentlagerResponse<DokumentMetadataUpdateResult> updateMetadata(@NonNull UUID fiksOrganisasjonId,
+                                                      @NonNull UUID kontoId,
+                                                      @NonNull UUID dokumentId,
+                                                      @NonNull DokumentMetadataUpdate metadata) {
+        return api.updateDokumentMetadata(fiksOrganisasjonId, kontoId, dokumentId, metadata);
+    }
+
     public DokumentlagerResponse<Void> delete(@NonNull UUID fiksOrganisasjonId,
                                               @NonNull UUID kontoId,
                                               @NonNull UUID dokumentId) {
