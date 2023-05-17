@@ -33,7 +33,7 @@
 
     <lombok.version>1.18.26</lombok.version>
     <jetty-client.version>11.0.14</jetty-client.version>
-    <jackson.version>2.15.0</jackson.version>
+    <jackson.version>2.15.1</jackson.version>
     <commons-io.version>2.11.0</commons-io.version>
 
     <maven-surefire-plugin.version>3.0.0</maven-surefire-plugin.version>
