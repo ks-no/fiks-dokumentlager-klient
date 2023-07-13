@@ -29,17 +29,16 @@
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <fiks-kryptering.version>1.3.1</fiks-kryptering.version>
+    <fiks-kryptering.version>2.0.1</fiks-kryptering.version>
 
     <lombok.version>1.18.28</lombok.version>
     <jetty-client.version>11.0.14</jetty-client.version>
     <jackson.version>2.15.2</jackson.version>
-    <commons-io.version>2.12.0</commons-io.version>
+    <commons-io.version>2.13.0</commons-io.version>
 
-    <maven-surefire-plugin.version>3.1.0</maven-surefire-plugin.version>
     <junit-jupiter.version>5.9.3</junit-jupiter.version>
     <hamcrest.version>2.2</hamcrest.version>
-    <mockito-core.version>5.3.1</mockito-core.version>
+    <mockito-core.version>5.4.0</mockito-core.version>
     <testcontainers.version>1.18.3</testcontainers.version>
     <mockserver-client.version>5.15.0</mockserver-client.version>
     <fiks-maskinporten-client.version>3.1.2</fiks-maskinporten-client.version>
@@ -142,7 +141,6 @@
     <plugins>
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>${maven-surefire-plugin.version}</version>
       </plugin>
       <plugin>
         <artifactId>maven-source-plugin</artifactId>
