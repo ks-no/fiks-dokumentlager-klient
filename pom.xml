@@ -33,7 +33,7 @@
 
     <lombok.version>1.18.28</lombok.version>
     <jetty-client.version>11.0.14</jetty-client.version>
-    <jackson.version>2.15.2</jackson.version>
+    <jackson.version>2.15.3</jackson.version>
     <commons-io.version>2.14.0</commons-io.version>
 
     <junit-jupiter.version>5.10.0</junit-jupiter.version>
