@@ -31,7 +31,7 @@
 
     <fiks-kryptering.version>2.0.2</fiks-kryptering.version>
 
-    <lombok.version>1.18.28</lombok.version>
+    <lombok.version>1.18.30</lombok.version>
     <jetty-client.version>11.0.14</jetty-client.version>
     <jackson.version>2.15.3</jackson.version>
     <commons-io.version>2.15.0</commons-io.version>
