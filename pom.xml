@@ -41,7 +41,7 @@
     <mockito-core.version>5.4.0</mockito-core.version>
     <testcontainers.version>1.19.1</testcontainers.version>
     <mockserver-client.version>5.15.0</mockserver-client.version>
-    <fiks-maskinporten-client.version>3.1.2</fiks-maskinporten-client.version>
+    <fiks-maskinporten-client.version>3.1.6</fiks-maskinporten-client.version>
   </properties>
 
   <dependencies>
