@@ -8,7 +8,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         @JsonSubTypes.Type(value = EksponertForPerson.class, name = "PERSON"),
         @JsonSubTypes.Type(value = EksponertForOrganisasjon.class, name = "ORGANISASJON"),
         @JsonSubTypes.Type(value = EksponertForIntegrasjon.class, name = "INTEGRASJON"),
-        @JsonSubTypes.Type(value = EksponertForAutorisasjon.class, name = "AUTORISASJON")
+        @JsonSubTypes.Type(value = EksponertForAutorisasjon.class, name = "AUTORISASJON"),
+        @JsonSubTypes.Type(value = EksponertForMatrikkelenhet.class, name = "MATRIKKELENHET")
 })
 public interface EksponertFor {
     EksponertForType getType();
