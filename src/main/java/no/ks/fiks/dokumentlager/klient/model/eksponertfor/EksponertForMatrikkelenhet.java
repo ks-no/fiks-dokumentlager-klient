@@ -13,7 +13,5 @@ public class EksponertForMatrikkelenhet implements EksponertFor {
         return EksponertForType.MATRIKKELENHET;
     }
 
-        public record Matrikkelenhet(String kommunenummer, String gardsnummer, String bruksnummer, String festenummer,
-                                     String seksjonsnumme) {
-    }
+    public record Matrikkelenhet(String kommunenummer, String gardsnummer, String bruksnummer, String festenummer, String seksjonsnummer) {}
 }
