@@ -1,7 +1,8 @@
 package no.ks.fiks.dokumentlager.klient.authentication;
 
+import no.ks.fiks.maskinporten.AccessTokenRequest;
 import no.ks.fiks.maskinporten.Maskinportenklient;
-import org.eclipse.jetty.client.api.Request;
+import org.eclipse.jetty.client.Request;
 
 import java.util.UUID;
 
@@ -19,12 +20,13 @@ public class IntegrasjonAuthenticationStrategy implements AuthenticationStrategy
 
     @Override
     public void setAuthenticationHeaders(Request request) {
-        request.header("Authorization", "Bearer " + getAccessToken())
-                .header("IntegrasjonId", integrasjonId.toString())
-                .header("IntegrasjonPassord", integrasjonPassord);
+        request.headers(headers -> headers
+                .add("Authorization", "Bearer " + getAccessToken())
+                .add("IntegrasjonId", integrasjonId.toString())
+                .add("IntegrasjonPassord", integrasjonPassord));
     }
 
     private String getAccessToken() {
-        return maskinportenklient.getAccessToken("ks:fiks");
+        return maskinportenklient.getAccessToken(AccessTokenRequest.builder().scope("ks:fiks").build());
     }
 }

@@ -8,12 +8,8 @@ import no.ks.fiks.dokumentlager.klient.path.DefaultPathHandler;
 import no.ks.fiks.dokumentlager.klient.path.PathHandler;
 import org.apache.commons.io.IOUtils;
 import org.apache.hc.core5.http.ContentType;
-import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.client.api.ContentResponse;
-import org.eclipse.jetty.client.api.Request;
-import org.eclipse.jetty.client.api.Response;
-import org.eclipse.jetty.client.dynamic.HttpClientTransportDynamic;
-import org.eclipse.jetty.client.util.*;
+import org.eclipse.jetty.client.*;
+import org.eclipse.jetty.client.transport.HttpClientTransportDynamic;
 import org.eclipse.jetty.http.*;
 import org.eclipse.jetty.io.ClientConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
@@ -33,6 +29,10 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class DokumentlagerApiImpl implements DokumentlagerApi {
+
+    private static final String KRYPTERT_PARAM = "kryptert";
+    private static final String METADATA_PART = "metadata";
+    private static final String DOKUMENT_PART = "dokument";
 
     private final JsonMapper mapper = new JsonMapper();
 
@@ -85,16 +85,11 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
                                                                               boolean kryptert) {
         log.debug("Uploading {}dokument for organisasjon {} and konto {}: {}", kryptert ? "encrypted " : "", fiksOrganisasjonId, kontoId, metadata);
         try {
-            MultiPartRequestContent multipart = new MultiPartRequestContent();
-            multipart.addFieldPart("metadata", new StringRequestContent(mapper.toJson(metadata)), HttpFields.from(new HttpField(HttpHeader.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType())));
-            multipart.addFilePart("dokument", metadata.getDokumentnavn(), new InputStreamRequestContent(dokumentStream), HttpFields.from(new HttpField(HttpHeader.CONTENT_TYPE, ContentType.APPLICATION_OCTET_STREAM.getMimeType())));
-            multipart.close();
-
             ContentResponse response = newUploadRequest()
                     .method(HttpMethod.POST)
                     .path(pathHandler.getUploadPath(fiksOrganisasjonId, kontoId))
-                    .param("kryptert", String.valueOf(kryptert))
-                    .body(multipart)
+                    .param(KRYPTERT_PARAM, String.valueOf(kryptert))
+                    .body(buildMultipartContent(metadata, dokumentStream))
                     .timeout(uploadTimeout.toMillis(), TimeUnit.MILLISECONDS)
                     .send();
 
@@ -108,6 +103,49 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
             return buildResponse(response, mapper.fromJson(response.getContent(), DokumentMetadataUploadResult.class));
         } catch (InterruptedException | TimeoutException | ExecutionException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private MultiPartRequestContent buildMultipartContent(DokumentMetadataUpload metadata, InputStream dokumentStream) {
+        MultiPartRequestContent multipart = new MultiPartRequestContent();
+        addMetadataPart(multipart, metadata);
+        addDokumentPart(multipart, metadata.getDokumentnavn(), dokumentStream);
+        multipart.close();
+        return multipart;
+    }
+
+    private void addMetadataPart(MultiPartRequestContent multipart, DokumentMetadataUpload metadata) {
+        addPart(
+                multipart,
+                new MultiPart.ContentSourcePart(
+                        METADATA_PART,
+                        null,
+                        HttpFields.from(
+                                new HttpField(HttpHeader.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType())
+                        ),
+                        new StringRequestContent(mapper.toJson(metadata))
+                )
+        );
+    }
+
+    private void addDokumentPart(MultiPartRequestContent multipart, String fileName, InputStream dokumentStream) {
+        addPart(
+                multipart,
+                new MultiPart.ContentSourcePart(
+                        DOKUMENT_PART,
+                        fileName,
+                        HttpFields.from(
+                                new HttpField(HttpHeader.CONTENT_TYPE, ContentType.APPLICATION_OCTET_STREAM.getMimeType())
+                        ),
+                        new InputStreamRequestContent(dokumentStream)
+                )
+        );
+    }
+
+    private void addPart(MultiPartRequestContent multipart, MultiPart.Part part) {
+        boolean added = multipart.addPart(part);
+        if (!added) {
+            throw new RuntimeException("Failed to add metadata multipart");
         }
     }
 
