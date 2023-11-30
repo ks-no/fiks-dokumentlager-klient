@@ -8,6 +8,13 @@ Klient for å laste opp, slette og laste ned dokumenter fra Fiks Dokumentlager.
 
 Artefakter er tilgjengelig på Maven central.
 
+## Versjoner
+
+| Versjon | Jetty versjon | Status      | 
+|---------|---------------|-------------|
+| 3.x     | 12.x          | Aktiv       | 
+| 2.x     | 11.x          | Vedlikehold |
+
 ## dokumentlager-klient
 ```xml
 <dependency>
