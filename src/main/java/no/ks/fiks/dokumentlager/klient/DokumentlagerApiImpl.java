@@ -145,7 +145,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
     private void addPart(MultiPartRequestContent multipart, MultiPart.Part part) {
         boolean added = multipart.addPart(part);
         if (!added) {
-            throw new RuntimeException("Failed to add metadata multipart");
+            throw new RuntimeException("Failed to add multipart");
         }
     }
 
