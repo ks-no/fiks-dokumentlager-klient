@@ -21,6 +21,7 @@ import static no.ks.fiks.dokumentlager.klient.EncryptUtil.PUBLIC_KEY;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
@@ -64,7 +65,7 @@ public class TimeoutTest {
                 kontoId,
                 true));
         assertThat(exception.getCause(), is(instanceOf(TimeoutException.class)));
-        assertThat(exception.getCause().getMessage(), is("Idle timeout 500 ms"));
+        assertThat(exception.getCause().getMessage(), matchesPattern("Idle timeout expired: \\d*/500 ms"));
     }
 
     @Test
@@ -91,7 +92,7 @@ public class TimeoutTest {
                 fiksOrganisasjonId,
                 kontoId));
         assertThat(exception.getCause(), is(instanceOf(TimeoutException.class)));
-        assertThat(exception.getCause().getMessage(), is("Idle timeout 1234 ms"));
+        assertThat(exception.getCause().getMessage(), matchesPattern("Idle timeout expired: \\d*/1234 ms"));
     }
 
     @Test
