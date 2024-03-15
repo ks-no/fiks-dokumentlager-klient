@@ -13,9 +13,11 @@ import org.eclipse.jetty.client.transport.HttpClientTransportDynamic;
 import org.eclipse.jetty.http.*;
 import org.eclipse.jetty.io.ClientConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.HashMap;
@@ -84,14 +86,21 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
                                                                               @NonNull UUID kontoId,
                                                                               boolean kryptert) {
         log.debug("Uploading {}dokument for organisasjon {} and konto {}: {}", kryptert ? "encrypted " : "", fiksOrganisasjonId, kontoId, metadata);
+        return getDokumentMetadataUploadResultDokumentlagerResponse(dokumentStream, metadata, fiksOrganisasjonId, kontoId, kryptert, 0);
+    }
+
+    private DokumentlagerResponse<DokumentMetadataUploadResult> getDokumentMetadataUploadResultDokumentlagerResponse(@NotNull InputStream dokumentStream, @NotNull DokumentMetadataUpload metadata, @NotNull UUID fiksOrganisasjonId, @NotNull UUID kontoId, boolean kryptert, int retry) {
+        if(retry > 3) {
+            throw new RuntimeException("Connection refused and retry limit reached");
+        }
         try {
             ContentResponse response = newUploadRequest()
-                    .method(HttpMethod.POST)
-                    .path(pathHandler.getUploadPath(fiksOrganisasjonId, kontoId))
-                    .param(KRYPTERT_PARAM, String.valueOf(kryptert))
-                    .body(buildMultipartContent(metadata, dokumentStream))
-                    .timeout(uploadTimeout.toMillis(), TimeUnit.MILLISECONDS)
-                    .send();
+                .method(HttpMethod.POST)
+                .path(pathHandler.getUploadPath(fiksOrganisasjonId, kontoId))
+                .param(KRYPTERT_PARAM, String.valueOf(kryptert))
+                .body(buildMultipartContent(metadata, dokumentStream))
+                .timeout(uploadTimeout.toMillis(), TimeUnit.MILLISECONDS)
+                .send();
 
             if (isError(response.getStatus())) {
                 log.info("Upload request failed with status {}", response.getStatus());
@@ -101,7 +110,15 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
             }
 
             return buildResponse(response, mapper.fromJson(response.getContent(), DokumentMetadataUploadResult.class));
-        } catch (InterruptedException | TimeoutException | ExecutionException e) {
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof ConnectException) {
+                log.info("Got connection exception: "+e.getCause().getMessage());
+                return getDokumentMetadataUploadResultDokumentlagerResponse(dokumentStream, metadata, fiksOrganisasjonId, kontoId, kryptert, retry++);
+            }
+            else {
+                throw new RuntimeException(e);
+            }
+        } catch (InterruptedException | TimeoutException e) {
             throw new RuntimeException(e);
         }
     }
