@@ -7,16 +7,15 @@ import no.ks.fiks.dokumentlager.klient.model.*;
 import no.ks.fiks.dokumentlager.klient.path.DefaultPathHandler;
 import no.ks.fiks.dokumentlager.klient.path.PathHandler;
 import org.apache.commons.io.IOUtils;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.HttpRequestInterceptor;
-import org.apache.hc.core5.util.TimeValue;
+import org.eclipse.jetty.client.*;
+import org.eclipse.jetty.client.transport.HttpClientTransportOverHTTP;
+import org.eclipse.jetty.http.*;
+import org.eclipse.jetty.io.ClientConnector;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.HashMap;
@@ -37,29 +36,41 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
 
     private final JsonMapper mapper = new JsonMapper();
 
-    private final CloseableHttpClient client;
+    private final HttpClient client;
     private final Duration uploadTimeout;
     private final Duration downloadTimeout;
 
     private final String uploadbaseUrl;
     private final String downloadBaseUrl;
+    private final AuthenticationStrategy authenticationStrategy;
     private final PathHandler pathHandler;
+
+    private final Function<Request, Request> requestInterceptor;
 
     private DokumentlagerApiImpl(@NonNull String uploadBaseUrl,
                                  @NonNull String downloadBaseUrl,
-                                 HttpRequestInterceptor requestInterceptor,
+                                 @NonNull AuthenticationStrategy authenticationStrategy,
+                                 Function<Request, Request> requestInterceptor,
                                  @NonNull PathHandler pathHandler,
                                  @NonNull HttpConfiguration httpConfiguration) {
         this.uploadbaseUrl = uploadBaseUrl;
         this.downloadBaseUrl = downloadBaseUrl;
+        this.authenticationStrategy = authenticationStrategy;
+        this.requestInterceptor = requestInterceptor;
         this.pathHandler = pathHandler;
 
-        this.client = HttpClientBuilder.create()
-                .evictIdleConnections(TimeValue.of(httpConfiguration.getIdleTimeout()))
-                .addRequestInterceptorFirst(requestInterceptor)
-                .build();
+        ClientConnector clientConnector = new ClientConnector();
+        clientConnector.setSslContextFactory(new SslContextFactory.Client());
+        this.client = new HttpClient(new HttpClientTransportOverHTTP(clientConnector));
+        this.client.setIdleTimeout(httpConfiguration.getIdleTimeout().toMillis());
         this.uploadTimeout = httpConfiguration.getUploadTimeout();
         this.downloadTimeout = httpConfiguration.getDownloadTimeout();
+
+        try {
+            this.client.start();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static DokumentlagerApiImplBuilder builder() {
@@ -74,19 +85,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
                                                                               boolean kryptert) {
         log.debug("Uploading {}dokument for organisasjon {} and konto {}: {}", kryptert ? "encrypted " : "", fiksOrganisasjonId, kontoId, metadata);
         try {
-            HttpPost post = new HttpPost(pathHandler.getUploadPath(fiksOrganisasjonId, kontoId));
-
-            final MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-            builder.setMode(HttpMultipartMode.LEGACY);
-            builder.addPart("file", fileBody);
-            builder.addPart("text1", stringBody1);
-            builder.addPart("text2", stringBody2);
-            final HttpEntity entity = builder.build();
-
-            this.client.execute(post, response -> {
-
-            });
-            response = newUploadRequest()
+            ContentResponse response = newUploadRequest()
                     .method(HttpMethod.POST)
                     .path(pathHandler.getUploadPath(fiksOrganisasjonId, kontoId))
                     .param(KRYPTERT_PARAM, String.valueOf(kryptert))
@@ -103,9 +102,6 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
 
             return buildResponse(response, mapper.fromJson(response.getContent(), DokumentMetadataUploadResult.class));
         } catch (InterruptedException | TimeoutException | ExecutionException e) {
-            if (e.getCause() instanceof ConnectException) {
-                log.info("Got connection exception: "+e.getCause().getMessage());
-            }
             throw new RuntimeException(e);
         }
     }
@@ -354,7 +350,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
 
     private Request newRequest(String baseUrl) {
         Request request = client.newRequest(baseUrl);
-        log.info("laster opp med destination host {}", request.getHost());
+
         authenticationStrategy.setAuthenticationHeaders(request);
 
         if (requestInterceptor != null) {
@@ -370,7 +366,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
     @Override
     public void close() {
         try {
-            client.close();
+            client.stop();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

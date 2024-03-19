@@ -50,7 +50,7 @@ public class DokumentlagerIntegrasjonsTest {
 
             try (DokumentlagerKlient klient = DokumentlagerKlient.builder()
                     .api(DokumentlagerApiImpl.builder()
-                            .httpConfiguration(HttpConfiguration.builder().idleTimeout(Duration.ofMinutes(5)).build())
+                            .httpConfiguration(HttpConfiguration.builder().idleTimeout(Duration.ofMinutes(1)).build())
                             .uploadBaseUrl("https://api.fiks.dev.ks.no")
                             .downloadBaseUrl("https://api.fiks.dev.ks.no")
                             .authenticationStrategy(new IntegrasjonAuthenticationStrategy(maskinportenklient, UUID.fromString("046a19e3-a7b0-4110-b9f1-edc426e56a4d"), "9*7TCYxx4G-#4RgOU5his-@XqLr2Be?i-273i#zu4Wq-Hd*6YcoB36"))
@@ -71,7 +71,7 @@ public class DokumentlagerIntegrasjonsTest {
                         DokumentlagerResponse<DokumentMetadataUploadResult> response = klient.upload(new FileInputStream("/home/audun/ks/fiks-dokumentlager-klient/src/test/resources/small.pdf"), DokumentMetadataUpload.builder().eksponertFor(Collections.singleton(new EksponertForIntegrasjon(UUID.fromString("046a19e3-a7b0-4110-b9f1-edc426e56a4d")))).sikkerhetsniva(3).dokumentnavn("small.pdf").ttl(10000L).mimetype("application/pdf").build(), UUID.fromString("6cb106e6-6b46-41a7-8344-607d40e916ae"), UUID.fromString("f9e5de11-397a-4f09-b59d-5f3215e6830d"));
                         log.info("DokumentlagerId {}", response.getResult().getId());
 
-                        Thread.sleep(300);
+                        Thread.sleep(100);
                     } catch (Exception e) {
                         log.warn("Klarte ikke å laste opp dokument", e);
                     }
