@@ -30,6 +30,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <fiks-kryptering.version>2.0.6</fiks-kryptering.version>
+    <fiksporten-klient.version>1.0.5</fiksporten-klient.version>
 
     <lombok.version>1.18.34</lombok.version>
     <jetty-client.version>12.0.3</jetty-client.version>
@@ -49,6 +50,11 @@
       <groupId>no.ks.fiks</groupId>
       <artifactId>maskinporten-client</artifactId>
       <version>${fiks-maskinporten-client.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>no.ks.fiks</groupId>
+      <artifactId>fiksporten-klient</artifactId>
+      <version>${fiksporten-klient.version}</version>
     </dependency>
     <dependency>
       <groupId>no.ks.fiks</groupId>
