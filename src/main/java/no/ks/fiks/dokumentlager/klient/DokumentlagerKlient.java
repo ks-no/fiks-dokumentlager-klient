@@ -61,54 +61,77 @@ public class DokumentlagerKlient implements Closeable {
         return response;
     }
 
-    public DokumentlagerResponse<DokumentMetadataUploadResult> upload(@NonNull InputStream dokumentStream,
-                                                                      @NonNull DokumentMetadataUpload metadata,
-                                                                      @NonNull UUID fiksOrganisasjonId,
-                                                                      @NonNull UUID kontoId,
-                                                                      boolean skalKrypteres) {
-        Future<?> krypteringFuture = null;
-        InputStream inputStream = dokumentStream;
+    public DokumentlagerResponse<DokumentMetadataUploadResult> upload(
+            @NonNull InputStream dokumentStream,
+            @NonNull DokumentMetadataUpload metadata,
+            @NonNull UUID fiksOrganisasjonId,
+            @NonNull UUID kontoId,
+            boolean skalKrypteres
+    ) {
+        try (PushbackInputStream pushbackInputStream = new PushbackInputStream(dokumentStream)) {
+            int read = pushbackInputStream.read();
+            if (read == END_OF_STREAM) {
+                throw new EmptyDokumentException();
+            }
+            pushbackInputStream.unread(read);
 
-        if (metadata.getSikkerhetsniva() != null && metadata.getSikkerhetsniva() > 3 && !skalKrypteres) {
-            log.info("Dokument will be encrypted as sikkerhetsnivå is greater than 3");
-            skalKrypteres = true;
-        }
-
-        try (DokumentlagerPipedInputStream pipedInputStream = new DokumentlagerPipedInputStream();
-             PipedOutputStream pipedOutputStream = new PipedOutputStream(pipedInputStream)) {
+            if (metadata.getSikkerhetsniva() != null && metadata.getSikkerhetsniva() > 3 && !skalKrypteres) {
+                log.info("Dokument will be encrypted as sikkerhetsnivå is greater than 3");
+                skalKrypteres = true;
+            }
 
             if (skalKrypteres) {
-                if (publicCertificate == null) {
-                    publicCertificate = getPublicKeyAsX509Certificate().getResult();
-                }
+                return uploadKryptert(pushbackInputStream, metadata, fiksOrganisasjonId, kontoId);
+            } else {
+                return uploadUkryptert(pushbackInputStream, metadata, fiksOrganisasjonId, kontoId);
+            }
+        } catch (IOException e) {
+            throw new DokumentlagerIOException(e.getMessage(), e);
+        }
+    }
 
-                inputStream = pipedInputStream;
-                krypteringFuture = executor.submit(() -> krypter(dokumentStream, pipedInputStream, pipedOutputStream, MDC.getCopyOfContextMap()));
+    private DokumentlagerResponse<DokumentMetadataUploadResult> uploadUkryptert(
+            InputStream inputStream,
+            DokumentMetadataUpload metadata,
+            UUID fiksOrganisasjonId,
+            UUID kontoId
+    ) {
+        DokumentlagerResponse<DokumentMetadataUploadResult> response = api.uploadDokument(inputStream, metadata, fiksOrganisasjonId, kontoId, false);
+        log.debug("Unencrypted upload completed");
+
+        return response;
+    }
+
+    private DokumentlagerResponse<DokumentMetadataUploadResult> uploadKryptert(
+            InputStream inputStream,
+            DokumentMetadataUpload metadata,
+            UUID fiksOrganisasjonId,
+            UUID kontoId
+    ) {
+        Future<?> krypteringFuture = null;
+        try (DokumentlagerPipedInputStream kryptertInputStream = new DokumentlagerPipedInputStream();
+             PipedOutputStream kryptertOutputStream = new PipedOutputStream(kryptertInputStream)) {
+
+            if (publicCertificate == null) {
+                publicCertificate = getPublicKeyAsX509Certificate().getResult();
             }
 
-            try (PushbackInputStream pis = new PushbackInputStream(inputStream)) {
-                int read = pis.read();
-                if(read == END_OF_STREAM){
-                    throw new EmptyDokumentException();
-                }
-                pis.unread(read);
-                DokumentlagerResponse<DokumentMetadataUploadResult> response = api.uploadDokument(pis, metadata, fiksOrganisasjonId, kontoId, skalKrypteres);
-                log.debug("Upload completed");
+            krypteringFuture = executor.submit(() -> krypter(inputStream, kryptertInputStream, kryptertOutputStream, MDC.getCopyOfContextMap()));
 
-                if (krypteringFuture != null) {
-                    log.debug("Waiting for encryption thread to terminate...");
-                    krypteringFuture.get(10, TimeUnit.SECONDS);
-                    log.debug("Encryption thread terminated");
-                }
-                return response;
-            }
-        }  catch (IOException e){
-            throw new DokumentlagerIOException(e.getMessage(),e);
-        }  catch (InterruptedException | ExecutionException | TimeoutException e) {
+            DokumentlagerResponse<DokumentMetadataUploadResult> response = api.uploadDokument(kryptertInputStream, metadata, fiksOrganisasjonId, kontoId, true);
+            log.debug("Encrypted upload completed");
+
+            log.debug("Waiting for encryption thread to terminate...");
+            krypteringFuture.get(10, TimeUnit.SECONDS);
+            log.debug("Encryption thread terminated");
+
+            return response;
+        } catch (IOException e) {
+            throw new DokumentlagerIOException(e.getMessage(), e);
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
             log.error("Upload failed", e);
             throw new RuntimeException(e);
-        }
-        finally {
+        } finally {
             avbrytKrypteringFuture(krypteringFuture);
         }
     }
@@ -144,22 +167,28 @@ public class DokumentlagerKlient implements Closeable {
         }
     }
 
-    public DokumentlagerResponse<DokumentMetadataUpdateResult> updateMetadata(@NonNull UUID fiksOrganisasjonId,
-                                                      @NonNull UUID kontoId,
-                                                      @NonNull UUID dokumentId,
-                                                      @NonNull DokumentMetadataUpdate metadata) {
+    public DokumentlagerResponse<DokumentMetadataUpdateResult> updateMetadata(
+            @NonNull UUID fiksOrganisasjonId,
+            @NonNull UUID kontoId,
+            @NonNull UUID dokumentId,
+            @NonNull DokumentMetadataUpdate metadata
+    ) {
         return api.updateDokumentMetadata(fiksOrganisasjonId, kontoId, dokumentId, metadata);
     }
 
-    public DokumentlagerResponse<Void> delete(@NonNull UUID fiksOrganisasjonId,
-                                              @NonNull UUID kontoId,
-                                              @NonNull UUID dokumentId) {
+    public DokumentlagerResponse<Void> delete(
+            @NonNull UUID fiksOrganisasjonId,
+            @NonNull UUID kontoId,
+            @NonNull UUID dokumentId
+    ) {
         return api.deleteDokument(fiksOrganisasjonId, kontoId, dokumentId);
     }
 
-    public DokumentlagerResponse<Void> deleteDokumenterByKorrelasjonsid(@NonNull UUID fiksOrganisasjonId,
-                                              @NonNull UUID kontoId,
-                                              @NonNull UUID korrelasjonsid) {
+    public DokumentlagerResponse<Void> deleteDokumenterByKorrelasjonsid(
+            @NonNull UUID fiksOrganisasjonId,
+            @NonNull UUID kontoId,
+            @NonNull UUID korrelasjonsid
+    ) {
         return api.deleteDokumenterByKorrelasjonsid(fiksOrganisasjonId, kontoId, korrelasjonsid);
     }
 
