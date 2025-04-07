@@ -69,6 +69,7 @@ public class DokumentlagerKlient implements Closeable {
             boolean skalKrypteres
     ) {
         try (PushbackInputStream pushbackInputStream = new PushbackInputStream(dokumentStream)) {
+            log.info("Skal laste opp");
             int firstByte = pushbackInputStream.read();
             if (firstByte == END_OF_STREAM) {
                 throw new EmptyDokumentException();
