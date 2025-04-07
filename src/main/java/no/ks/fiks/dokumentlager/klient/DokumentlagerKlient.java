@@ -69,11 +69,11 @@ public class DokumentlagerKlient implements Closeable {
             boolean skalKrypteres
     ) {
         try (PushbackInputStream pushbackInputStream = new PushbackInputStream(dokumentStream)) {
-            int read = pushbackInputStream.read();
-            if (read == END_OF_STREAM) {
+            int firstByte = pushbackInputStream.read();
+            if (firstByte == END_OF_STREAM) {
                 throw new EmptyDokumentException();
             }
-            pushbackInputStream.unread(read);
+            pushbackInputStream.unread(firstByte);
 
             if (metadata.getSikkerhetsniva() != null && metadata.getSikkerhetsniva() > 3 && !skalKrypteres) {
                 log.info("Dokument will be encrypted as sikkerhetsnivå is greater than 3");
