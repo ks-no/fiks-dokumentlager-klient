@@ -71,7 +71,6 @@ public class DokumentlagerKlient implements Closeable {
         try {
             // Not closing this, as closing the incoming stream might cause problems if it is reused, for example when reading a ZIP with multiple files using ZipArchiveInputStream
             PushbackInputStream pushbackInputStream = new PushbackInputStream(dokumentStream);
-            log.info("Skal laste opp");
             int firstByte = pushbackInputStream.read();
             if (firstByte == END_OF_STREAM) {
                 throw new EmptyDokumentException();
