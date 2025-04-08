@@ -106,7 +106,7 @@ class DokumentlagerKlientTest {
 
     @Test
     @DisplayName("Opplasting av dokument uten data skal gi feil")
-    void uploadDokumentUtenDataSkalGiFEil() {
+    void uploadDokumentUtenDataSkalGiFeil() {
         InputStream dokumentData = new ByteArrayInputStream(new byte[0]);
 
         UUID fiksOrganisasjonId = UUID.randomUUID();
@@ -118,6 +118,26 @@ class DokumentlagerKlientTest {
                 .ttl(-1L)
                 .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
                 .sikkerhetsniva(3)
+                .build();
+
+        EmptyDokumentException exception = assertThrows(EmptyDokumentException.class, () -> klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId));
+        assertThat(exception.getMessage(), is("Cannot upload document without content"));
+    }
+
+    @Test
+    @DisplayName("Opplasting av dokument uten data med nivå 4 skal gi feil")
+    void uploadDokumentUtenDataSkalGiFeilNiva4() {
+        InputStream dokumentData = new ByteArrayInputStream(new byte[0]);
+
+        UUID fiksOrganisasjonId = UUID.randomUUID();
+        UUID kontoId = UUID.randomUUID();
+
+        DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
+                .dokumentnavn("uploadDokumentNiva4UtenFlag.pdf")
+                .mimetype("application/pdf")
+                .ttl(-1L)
+                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
+                .sikkerhetsniva(4)
                 .build();
 
         EmptyDokumentException exception = assertThrows(EmptyDokumentException.class, () -> klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId));
@@ -442,7 +462,7 @@ class DokumentlagerKlientTest {
                 .build();
 
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
-                klient.upload(new ByteArrayInputStream(new byte[0]), DokumentMetadataUpload.builder().build(), UUID.randomUUID(), UUID.randomUUID(), true));
+                klient.upload(new ByteArrayInputStream(new byte[1]), DokumentMetadataUpload.builder().build(), UUID.randomUUID(), UUID.randomUUID(), true));
 
         assertThat(exception.getMessage(), is(message));
     }
