@@ -29,7 +29,7 @@
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <fiks-kryptering.version>2.0.7</fiks-kryptering.version>
+    <fiks-kryptering.version>2.0.8</fiks-kryptering.version>
 
     <lombok.version>1.18.40</lombok.version>
     <jetty-client.version>12.0.3</jetty-client.version>
