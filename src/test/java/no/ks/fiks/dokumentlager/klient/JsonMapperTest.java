@@ -58,7 +58,7 @@ public class JsonMapperTest {
         if (eksponertFor instanceof EksponertForPerson) {
             assertThat(json, containsString(String.format("{\"fnr\":\"%s\",\"type\":\"PERSON\"}", ((EksponertForPerson) eksponertFor).getFnr())));
         } else if (eksponertFor instanceof EksponertForOrganisasjon) {
-            assertThat(json, containsString(String.format("{\"orgnr\":\"%s\",\"type\":\"ORGANISASJON\"}", ((EksponertForOrganisasjon) eksponertFor).getOrgnr())));
+            assertThat(json, containsString(String.format("{\"orgnr\":\"%s\",\"eksponertForOrgType\":\"ORGANISASJON\",\"type\":\"ORGANISASJON\"}", ((EksponertForOrganisasjon) eksponertFor).getOrgnr())));
         } else if (eksponertFor instanceof EksponertForIntegrasjon) {
             assertThat(json, containsString(String.format("{\"id\":\"%s\",\"type\":\"INTEGRASJON\"}", ((EksponertForIntegrasjon) eksponertFor).getId())));
         } else if (eksponertFor instanceof EksponertForAutorisasjon) {
@@ -77,7 +77,7 @@ public class JsonMapperTest {
     private static EksponertFor randomEksponertFor() {
         return switch (ThreadLocalRandom.current().nextInt(0, 4)) {
             case 0 -> new EksponertForPerson(UUID.randomUUID().toString());
-            case 1 -> new EksponertForOrganisasjon(UUID.randomUUID().toString());
+            case 1 -> new EksponertForOrganisasjon(UUID.randomUUID().toString(), EksponertForOrgType.ORGANISASJON);
             case 2 -> new EksponertForIntegrasjon(UUID.randomUUID());
             case 3 -> new EksponertForAutorisasjon(UUID.randomUUID().toString(), UUID.randomUUID());
             default -> throw new RuntimeException("Ugyldig index for eksponertFor");
