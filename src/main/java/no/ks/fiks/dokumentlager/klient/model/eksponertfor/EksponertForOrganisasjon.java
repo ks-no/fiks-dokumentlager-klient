@@ -5,8 +5,8 @@ import lombok.Value;
 @Value
 public class EksponertForOrganisasjon implements EksponertFor {
 
-    private final String orgnr;
-    private final EksponertForOrgType eksponertForOrgType;
+    String orgnr;
+    EksponertForOrgType eksponertForOrgType;
 
     public EksponertForOrganisasjon(String orgnr, EksponertForOrgType eksponertForOrgType) {
         this.orgnr = orgnr;
@@ -14,7 +14,7 @@ public class EksponertForOrganisasjon implements EksponertFor {
     }
 
     public EksponertForOrganisasjon(String orgnr) {
-        this(orgnr, EksponertForOrgType.ORGANISASJON);
+        this(orgnr, null);
     }
 
     @Override
