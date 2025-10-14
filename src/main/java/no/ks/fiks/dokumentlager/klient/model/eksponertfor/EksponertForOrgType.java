@@ -1,5 +1,0 @@
-package no.ks.fiks.dokumentlager.klient.model.eksponertfor;
-
-public enum EksponertForOrgType {
-    ORGANISASJON_BYGGESAKER, ORGANISASJON_FAKTURA, ORGANISASJON_POST,ORGANISASJON_SKJEMA, ORGANISASJON_ANDRESAKER
-}

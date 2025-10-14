@@ -58,7 +58,7 @@ public class JsonMapperTest {
         if (eksponertFor instanceof EksponertForPerson) {
             assertThat(json, containsString(String.format("{\"fnr\":\"%s\",\"type\":\"PERSON\"}", ((EksponertForPerson) eksponertFor).getFnr())));
         } else if (eksponertFor instanceof EksponertForOrganisasjon) {
-            assertThat(json, containsString(String.format("{\"orgnr\":\"%s\",\"eksponertForOrgType\":null,\"type\":\"ORGANISASJON\"}", ((EksponertForOrganisasjon) eksponertFor).getOrgnr())));
+            assertThat(json, containsString(String.format("{\"orgnr\":\"%s\",\"ressursType\":null,\"type\":\"ORGANISASJON\"}", ((EksponertForOrganisasjon) eksponertFor).getOrgnr())));
         } else if (eksponertFor instanceof EksponertForIntegrasjon) {
             assertThat(json, containsString(String.format("{\"id\":\"%s\",\"type\":\"INTEGRASJON\"}", ((EksponertForIntegrasjon) eksponertFor).getId())));
         } else if (eksponertFor instanceof EksponertForAutorisasjon) {
