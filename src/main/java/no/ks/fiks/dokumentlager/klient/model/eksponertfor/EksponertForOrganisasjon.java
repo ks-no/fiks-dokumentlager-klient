@@ -5,7 +5,17 @@ import lombok.Value;
 @Value
 public class EksponertForOrganisasjon implements EksponertFor {
 
-    private final String orgnr;
+    String orgnr;
+    RessursType ressursType;
+
+    public EksponertForOrganisasjon(String orgnr, RessursType ressursType) {
+        this.orgnr = orgnr;
+        this.ressursType = ressursType;
+    }
+
+    public EksponertForOrganisasjon(String orgnr) {
+        this(orgnr, null);
+    }
 
     @Override
     public EksponertForType getType() {

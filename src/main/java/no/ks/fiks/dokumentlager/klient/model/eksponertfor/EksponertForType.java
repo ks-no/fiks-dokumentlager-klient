@@ -1,5 +1,5 @@
 package no.ks.fiks.dokumentlager.klient.model.eksponertfor;
 
-public enum EksponertForType {
+enum EksponertForType {
     PERSON, ORGANISASJON, INTEGRASJON, AUTORISASJON, MATRIKKELENHET
 }
