@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DokumentlagerApiImpl implements DokumentlagerApi {
 
+    private static final String MAKS_STORRELSE_PARAM = "maksStorrelse";
     private static final String KRYPTERT_PARAM = "kryptert";
     private static final String METADATA_PART = "metadata";
     private static final String DOKUMENT_PART = "dokument";
@@ -82,13 +83,15 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
                                                                               @NonNull DokumentMetadataUpload metadata,
                                                                               @NonNull UUID fiksOrganisasjonId,
                                                                               @NonNull UUID kontoId,
-                                                                              boolean kryptert) {
-        log.debug("Uploading {}dokument for organisasjon {} and konto {}: {}", kryptert ? "encrypted " : "", fiksOrganisasjonId, kontoId, metadata);
+                                                                              boolean kryptert,
+                                                                              Long maksStorrelse) {
+        log.debug("Uploading {}dokument for organisasjon {} and konto {}: {}, {}", kryptert ? "encrypted " : "", fiksOrganisasjonId, kontoId, metadata, "max size: " + maksStorrelse);
         try {
             ContentResponse response = newUploadRequest()
                     .method(HttpMethod.POST)
                     .path(pathHandler.getUploadPath(fiksOrganisasjonId, kontoId))
                     .param(KRYPTERT_PARAM, String.valueOf(kryptert))
+                    .param(MAKS_STORRELSE_PARAM, String.valueOf(maksStorrelse))
                     .body(buildMultipartContent(metadata, dokumentStream))
                     .timeout(uploadTimeout.toMillis(), TimeUnit.MILLISECONDS)
                     .send();
