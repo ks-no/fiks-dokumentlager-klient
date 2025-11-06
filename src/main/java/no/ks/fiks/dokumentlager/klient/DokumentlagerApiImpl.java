@@ -83,15 +83,13 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
                                                                               @NonNull DokumentMetadataUpload metadata,
                                                                               @NonNull UUID fiksOrganisasjonId,
                                                                               @NonNull UUID kontoId,
-                                                                              boolean kryptert,
-                                                                              Long maksStorrelse) {
-        log.debug("Uploading {}dokument for organisasjon {} and konto {}: {}, {}", kryptert ? "encrypted " : "", fiksOrganisasjonId, kontoId, metadata, "max size: " + maksStorrelse);
+                                                                              boolean kryptert) {
+        log.debug("Uploading {}dokument for organisasjon {} and konto {}: {}, {}", kryptert ? "encrypted " : "", fiksOrganisasjonId, kontoId, metadata);
         try {
             ContentResponse response = newUploadRequest()
                     .method(HttpMethod.POST)
                     .path(pathHandler.getUploadPath(fiksOrganisasjonId, kontoId))
                     .param(KRYPTERT_PARAM, String.valueOf(kryptert))
-                    .param(MAKS_STORRELSE_PARAM, String.valueOf(maksStorrelse))
                     .body(buildMultipartContent(metadata, dokumentStream))
                     .timeout(uploadTimeout.toMillis(), TimeUnit.MILLISECONDS)
                     .send();

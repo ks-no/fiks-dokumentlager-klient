@@ -12,8 +12,7 @@ public interface DokumentlagerApi extends Closeable {
             DokumentMetadataUpload metadata,
             UUID fiksOrganisasjonId,
             UUID kontoId,
-            boolean kryptert,
-            Long maksStorrelse
+            boolean kryptert
     );
 
     DokumentlagerResponse<DokumentMetadataUpdateResult> updateDokumentMetadata(

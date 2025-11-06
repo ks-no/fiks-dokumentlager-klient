@@ -56,7 +56,7 @@ class DokumentlagerKlientTest {
                 .result(PUBLIC_KEY)
                 .httpStatus(200)
                 .build());
-        when(api.uploadDokument(any(InputStream.class), any(DokumentMetadataUpload.class), any(UUID.class), any(UUID.class), anyBoolean(), any(Long.class)))
+        when(api.uploadDokument(any(InputStream.class), any(DokumentMetadataUpload.class), any(UUID.class), any(UUID.class), anyBoolean()))
                 .then(a -> {
                     try (InputStream inputStream = a.getArgument(0)) {
                         DokumentMetadataUpload metadata = a.getArgument(1);
@@ -100,7 +100,7 @@ class DokumentlagerKlientTest {
                 .build();
 
         klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId);
-        verify(api, times(1)).uploadDokument(isA(PushbackInputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(false), any(Long.class));
+        verify(api, times(1)).uploadDokument(isA(PushbackInputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(false));
         assertThat(uploadedBytes, is(data));
     }
 
@@ -163,7 +163,7 @@ class DokumentlagerKlientTest {
                 .build();
 
         klient.uploadAlreadyEncrypted(dokumentData, metadata, fiksOrganisasjonId, kontoId);
-        verify(api, times(1)).uploadDokument(eq(dokumentData), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true), any(Long.class));
+        verify(api, times(1)).uploadDokument(eq(dokumentData), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
     }
 
     @Test
@@ -184,8 +184,8 @@ class DokumentlagerKlientTest {
                 .sikkerhetsniva(3)
                 .build();
 
-        klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId, false, 259L);
-        verify(api, times(1)).uploadDokument(any(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(false), eq(259L));
+        DokumentlagerIOException exception = assertThrows(DokumentlagerIOException.class, () ->   klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId, false, 259L));
+        assertThat(exception.getMessage(), is("Exceeded configured input limit of 259 bytes"));
     }
 
     @Test
@@ -206,7 +206,7 @@ class DokumentlagerKlientTest {
                 .build();
 
         klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId);
-        verify(api, times(1)).uploadDokument(any(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true), any(Long.class));
+        verify(api, times(1)).uploadDokument(any(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
         assertDataEncrypted(data);
     }
 
@@ -228,7 +228,7 @@ class DokumentlagerKlientTest {
                 .build();
 
         klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true);
-        verify(api, times(1)).uploadDokument(any(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true), eq(0L));
+        verify(api, times(1)).uploadDokument(any(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
         assertDataEncrypted(data);
     }
 
@@ -253,7 +253,7 @@ class DokumentlagerKlientTest {
                 .result(PUBLIC_KEY)
                 .httpStatus(200)
                 .build());
-        when(api.uploadDokument(any(InputStream.class), any(DokumentMetadataUpload.class), any(UUID.class), any(UUID.class), anyBoolean(), any(Long.class)))
+        when(api.uploadDokument(any(InputStream.class), any(DokumentMetadataUpload.class), any(UUID.class), any(UUID.class), anyBoolean()))
                 .then(a -> {
                         throw new NoRouteToHostException("No route to host");
                     });
@@ -264,7 +264,7 @@ class DokumentlagerKlientTest {
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
                 klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true));
         assertThat(exception.getMessage(), is(expected.getMessage()));
-        verify(api, times(1)).uploadDokument(any(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true), eq(0L));
+        verify(api, times(1)).uploadDokument(any(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
     }
 
 
@@ -289,7 +289,7 @@ class DokumentlagerKlientTest {
                 .result(PUBLIC_KEY)
                 .httpStatus(200)
                 .build());
-        when(api.uploadDokument(any(InputStream.class), any(DokumentMetadataUpload.class), any(UUID.class), any(UUID.class), anyBoolean(), any(Long.class)))
+        when(api.uploadDokument(any(InputStream.class), any(DokumentMetadataUpload.class), any(UUID.class), any(UUID.class), anyBoolean()))
                 .then(a -> {
                     throw expected;
                 });
@@ -300,7 +300,7 @@ class DokumentlagerKlientTest {
         RuntimeException exception = assertThrows(DokumentlagerIOException.class, () ->
                 klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true));
         assertThat(exception.getMessage(), is(expected.getMessage()));
-        verify(api, times(1)).uploadDokument(any(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true), eq(0L));
+        verify(api, times(1)).uploadDokument(any(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
     }
 
     @Test
@@ -323,7 +323,7 @@ class DokumentlagerKlientTest {
                 .result(PUBLIC_KEY)
                 .httpStatus(200)
                 .build());
-        when(api.uploadDokument(any(InputStream.class), any(DokumentMetadataUpload.class), any(UUID.class), any(UUID.class), anyBoolean(), any(Long.class)))
+        when(api.uploadDokument(any(InputStream.class), any(DokumentMetadataUpload.class), any(UUID.class), any(UUID.class), anyBoolean()))
                 .then(a -> {
                     throw new NoRouteToHostException("No route to host");
                 })
@@ -522,7 +522,7 @@ class DokumentlagerKlientTest {
                 throw new RuntimeException(e);
             }
         });
-        verify(api, times(20)).uploadDokument(isA(PushbackInputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(false), eq(0L));
+        verify(api, times(20)).uploadDokument(isA(PushbackInputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(false));
         assertThat(uploadedBytes, is(data));
         executorService.shutdown();
     }
@@ -562,7 +562,7 @@ class DokumentlagerKlientTest {
                 throw new RuntimeException(e);
             }
         });
-        verify(api, times(20)).uploadDokument(any(), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true), eq(0L));
+        verify(api, times(20)).uploadDokument(any(), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
         executorService.shutdown();
     }
 

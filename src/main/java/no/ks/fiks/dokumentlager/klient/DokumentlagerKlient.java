@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import no.ks.fiks.dokumentlager.klient.model.*;
 import no.ks.kryptering.CMSKrypteringImpl;
 import no.ks.kryptering.CMSStreamKryptering;
+import org.apache.commons.io.input.BoundedInputStream;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.MDC;
 
@@ -64,7 +65,7 @@ public class DokumentlagerKlient implements Closeable {
                                                                                       @NonNull UUID fiksOrganisasjonId,
                                                                                       @NonNull UUID kontoId) {
         log.debug("Starting upload...");
-        DokumentlagerResponse<DokumentMetadataUploadResult> response = api.uploadDokument(dokumentStream, metadata, fiksOrganisasjonId, kontoId, true, 0L);
+        DokumentlagerResponse<DokumentMetadataUploadResult> response = api.uploadDokument(dokumentStream, metadata, fiksOrganisasjonId, kontoId, true);
         log.debug("Upload completed");
         return response;
     }
@@ -90,11 +91,12 @@ public class DokumentlagerKlient implements Closeable {
                 log.info("Dokument will be encrypted as sikkerhetsnivå is greater than 3");
                 skalKrypteres = true;
             }
+            BoundedInputStream boundedStream = lagBoundedInputStream(pushbackInputStream, maksStorrelse);
 
             if (skalKrypteres) {
-                return uploadKryptert(pushbackInputStream, metadata, fiksOrganisasjonId, kontoId, maksStorrelse);
+                return uploadKryptert(boundedStream, metadata, fiksOrganisasjonId, kontoId);
             } else {
-                return uploadUkryptert(pushbackInputStream, metadata, fiksOrganisasjonId, kontoId, maksStorrelse);
+                return uploadUkryptert(boundedStream, metadata, fiksOrganisasjonId, kontoId);
             }
         } catch (IOException e) {
             throw new DokumentlagerIOException(e.getMessage(), e);
@@ -105,10 +107,9 @@ public class DokumentlagerKlient implements Closeable {
             InputStream inputStream,
             DokumentMetadataUpload metadata,
             UUID fiksOrganisasjonId,
-            UUID kontoId,
-            Long maksStorrelse
+            UUID kontoId
     ) {
-        DokumentlagerResponse<DokumentMetadataUploadResult> response = api.uploadDokument(inputStream, metadata, fiksOrganisasjonId, kontoId, false, maksStorrelse);
+        DokumentlagerResponse<DokumentMetadataUploadResult> response = api.uploadDokument(inputStream, metadata, fiksOrganisasjonId, kontoId, false);
         log.debug("Unencrypted upload completed");
 
         return response;
@@ -118,8 +119,7 @@ public class DokumentlagerKlient implements Closeable {
             InputStream inputStream,
             DokumentMetadataUpload metadata,
             UUID fiksOrganisasjonId,
-            UUID kontoId,
-            Long maksStorrelse
+            UUID kontoId
     ) {
         Future<?> krypteringFuture = null;
         try (DokumentlagerPipedInputStream kryptertInputStream = new DokumentlagerPipedInputStream();
@@ -131,7 +131,7 @@ public class DokumentlagerKlient implements Closeable {
 
             krypteringFuture = executor.submit(() -> krypter(inputStream, kryptertInputStream, kryptertOutputStream, MDC.getCopyOfContextMap()));
 
-            DokumentlagerResponse<DokumentMetadataUploadResult> response = api.uploadDokument(kryptertInputStream, metadata, fiksOrganisasjonId, kontoId, true, maksStorrelse);
+            DokumentlagerResponse<DokumentMetadataUploadResult> response = api.uploadDokument(kryptertInputStream, metadata, fiksOrganisasjonId, kontoId, true);
             log.debug("Encrypted upload completed");
 
             log.debug("Waiting for encryption thread to terminate...");
@@ -258,6 +258,13 @@ public class DokumentlagerKlient implements Closeable {
         executor.shutdown();
     }
 
+    private BoundedInputStream lagBoundedInputStream(PushbackInputStream stream, Long maksStorrelse) {
+        if (maksStorrelse > 0) {
+            return new BoundedInputStream(stream, maksStorrelse);
+        }
+        return new BoundedInputStream(stream);
+    }
+
     public static class DokumentlagerKlientBuilder {
 
         private static final int DEFAULT_THREAD_POOL_SIZE = 4;
@@ -294,4 +301,5 @@ public class DokumentlagerKlient implements Closeable {
             return new DokumentlagerKlient(api, executor, kryptering);
         }
     }
+
 }
