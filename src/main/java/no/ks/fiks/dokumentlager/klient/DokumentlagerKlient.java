@@ -164,7 +164,7 @@ public class DokumentlagerKlient implements Closeable {
             kryptering.krypterData(pipedOutputStream, dokumentStream, publicCertificate, provider);
             log.info("Encryption completed...");
         } catch (Exception e) {
-            log.error("Encryption failed, setting exception on encrypted InputStream", e);
+            log.warn("Encryption failed, setting exception on encrypted InputStream", e);
             pipedInputStream.setException(e);
         } finally {
             try {
@@ -172,7 +172,7 @@ public class DokumentlagerKlient implements Closeable {
                 pipedOutputStream.close();
                 log.debug("Encryption OutputStream closed");
             } catch (IOException e) {
-                log.error("Failed closing encryption OutputStream", e);
+                log.warn("Failed closing encryption OutputStream", e);
                 throw new RuntimeException(e);
             } finally {
                 MDC.clear();
@@ -259,7 +259,7 @@ public class DokumentlagerKlient implements Closeable {
     }
 
     private BoundedInputStream lagBoundedInputStream(PushbackInputStream stream, Long maksStorrelse) throws IOException {
-        BoundedInputStream.Builder builder = BoundedInputStream.builder().setInputStream(stream);
+        BoundedInputStream.Builder builder = BoundedInputStream.builder().setInputStream(stream).setPropagateClose(false);
         if (maksStorrelse > 0) {
             builder.setMaxCount(maksStorrelse).setOnMaxCount((a, b) -> {
                         throw new IOException("Exceeded configured input limit of "+ maksStorrelse + " bytes");
