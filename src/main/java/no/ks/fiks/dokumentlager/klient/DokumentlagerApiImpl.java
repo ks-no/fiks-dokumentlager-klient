@@ -84,7 +84,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
                                                                               @NonNull UUID fiksOrganisasjonId,
                                                                               @NonNull UUID kontoId,
                                                                               boolean kryptert) {
-        log.debug("Uploading {}dokument for organisasjon {} and konto {}: {}, {}", kryptert ? "encrypted " : "", fiksOrganisasjonId, kontoId, metadata);
+        log.debug("Uploading {}dokument for organisasjon {} and konto {}: {}", kryptert ? "encrypted " : "", fiksOrganisasjonId, kontoId, metadata);
         try {
             ContentResponse response = newUploadRequest()
                     .method(HttpMethod.POST)

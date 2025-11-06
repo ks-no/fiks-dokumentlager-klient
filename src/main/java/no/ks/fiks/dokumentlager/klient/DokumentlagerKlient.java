@@ -258,11 +258,14 @@ public class DokumentlagerKlient implements Closeable {
         executor.shutdown();
     }
 
-    private BoundedInputStream lagBoundedInputStream(PushbackInputStream stream, Long maksStorrelse) {
+    private BoundedInputStream lagBoundedInputStream(PushbackInputStream stream, Long maksStorrelse) throws IOException {
+        BoundedInputStream.Builder builder = BoundedInputStream.builder().setInputStream(stream);
         if (maksStorrelse > 0) {
-            return new BoundedInputStream(stream, maksStorrelse);
+            builder.setMaxCount(maksStorrelse).setOnMaxCount((a, b) -> {
+                        throw new IOException("Exceeded configured input limit of "+ maksStorrelse + " bytes");
+                    });
         }
-        return new BoundedInputStream(stream);
+        return builder.get();
     }
 
     public static class DokumentlagerKlientBuilder {
