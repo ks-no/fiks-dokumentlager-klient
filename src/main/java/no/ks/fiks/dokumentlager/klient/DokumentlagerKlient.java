@@ -304,5 +304,4 @@ public class DokumentlagerKlient implements Closeable {
             return new DokumentlagerKlient(api, executor, kryptering);
         }
     }
-
 }

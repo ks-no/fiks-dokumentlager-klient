@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DokumentlagerApiImpl implements DokumentlagerApi {
 
-    private static final String MAKS_STORRELSE_PARAM = "maksStorrelse";
     private static final String KRYPTERT_PARAM = "kryptert";
     private static final String METADATA_PART = "metadata";
     private static final String DOKUMENT_PART = "dokument";
