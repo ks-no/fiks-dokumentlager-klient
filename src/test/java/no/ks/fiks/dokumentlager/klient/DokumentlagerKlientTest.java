@@ -206,7 +206,7 @@ class DokumentlagerKlientTest {
                 .sikkerhetsniva(3)
                 .build();
 
-        klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true, 0L);
+        klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true);
         verify(api, times(1)).uploadDokument(any(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true), eq(0L));
         assertDataEncrypted(data);
     }
@@ -241,7 +241,7 @@ class DokumentlagerKlientTest {
                 .build();
 
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
-                klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true, 0L));
+                klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true));
         assertThat(exception.getMessage(), is(expected.getMessage()));
         verify(api, times(1)).uploadDokument(any(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true), eq(0L));
     }
@@ -277,7 +277,7 @@ class DokumentlagerKlientTest {
                 .build();
 
         RuntimeException exception = assertThrows(DokumentlagerIOException.class, () ->
-                klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true, 0L));
+                klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true));
         assertThat(exception.getMessage(), is(expected.getMessage()));
         verify(api, times(1)).uploadDokument(any(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true), eq(0L));
     }
@@ -325,9 +325,9 @@ class DokumentlagerKlientTest {
                 .build();
 
         assertThrows(RuntimeException.class, () ->
-                klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true, 0L));
+                klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true));
         assertThrows(RuntimeException.class, () ->
-                klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true, 0L));
+                klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true));
         DokumentlagerResponse<DokumentMetadataUploadResult> dokumentlagerResponse = klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true,0L);
         assertThat(dokumentlagerResponse.getHttpStatus(), is(200));
     }
@@ -351,7 +351,7 @@ class DokumentlagerKlientTest {
                 .sikkerhetsniva(3)
                 .build();
 
-        DokumentlagerResponse<DokumentMetadataUploadResult> upload = klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, false, 0L);
+        DokumentlagerResponse<DokumentMetadataUploadResult> upload = klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, false);
         assertThat(upload.getResult(), notNullValue());
         assertThat(upload.getResult().getDokumentnavn(), is(dokumentnavn));
         assertThat(upload.getResult().getMimeType(), is(mimetype));
@@ -381,8 +381,8 @@ class DokumentlagerKlientTest {
                 .sikkerhetsniva(3)
                 .build();
 
-        klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true, 0L);
-        klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true, 0L);
+        klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true);
+        klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true);
         verify(api, times(1)).getPublicKey();
         assertDataEncrypted(data);
     }
@@ -462,7 +462,7 @@ class DokumentlagerKlientTest {
                 .build();
 
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
-                klient.upload(new ByteArrayInputStream(new byte[1]), DokumentMetadataUpload.builder().build(), UUID.randomUUID(), UUID.randomUUID(), true, 0L));
+                klient.upload(new ByteArrayInputStream(new byte[1]), DokumentMetadataUpload.builder().build(), UUID.randomUUID(), UUID.randomUUID(), true));
 
         assertThat(exception.getMessage(), is(message));
     }
