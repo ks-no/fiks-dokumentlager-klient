@@ -144,7 +144,6 @@ class DokumentlagerKlientTest {
         assertThat(exception.getMessage(), is("Cannot upload document without content"));
     }
 
-
     @Test
     @DisplayName("Ved opplasting av et dokument som allerede er kryptert skal API kalles med innsendt data")
     void uploadAlreadyEncryptedDokument() {
@@ -165,6 +164,28 @@ class DokumentlagerKlientTest {
 
         klient.uploadAlreadyEncrypted(dokumentData, metadata, fiksOrganisasjonId, kontoId);
         verify(api, times(1)).uploadDokument(eq(dokumentData), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true), any(Long.class));
+    }
+
+    @Test
+    @DisplayName("Ved opplasting av et dokument med storrelsebegrensning skal API kalles med innsendt data")
+    void uploadDokumentMedStorrelse() {
+        byte[] data = new byte[ThreadLocalRandom.current().nextInt(10000, 100000)];
+        new Random().nextBytes(data);
+
+        ByteArrayInputStream dokumentData = new ByteArrayInputStream(data);
+        UUID fiksOrganisasjonId = UUID.randomUUID();
+        UUID kontoId = UUID.randomUUID();
+
+        DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
+                .dokumentnavn("uploadAlreadyEncryptedDokument.pdf")
+                .mimetype("application/pdf")
+                .ttl(-1L)
+                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
+                .sikkerhetsniva(3)
+                .build();
+
+        klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId, false, 259L);
+        verify(api, times(1)).uploadDokument(any(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(false), eq(259L));
     }
 
     @Test
