@@ -185,7 +185,7 @@ class DokumentlagerKlientTest {
                 .build();
 
         DokumentlagerIOException exception = assertThrows(DokumentlagerIOException.class, () ->   klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId, false, 259L));
-        assertThat(exception.getMessage(), is("Exceeded configured input limit of 259 bytes"));
+        assertThat(exception.getMessage(), is("Exceeded configured input limit"));
     }
 
     @Test

@@ -102,8 +102,8 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
 
             return buildResponse(response, mapper.fromJson(response.getContent(), DokumentMetadataUploadResult.class));
         } catch (InterruptedException | TimeoutException | ExecutionException e) {
-            if(e.getMessage().contains("Exceeded configured input limit of")) {
-                throw new DokumentlagerHttpException("Uploaded dokument exceeds maximum allowed size", 413, e.getMessage());
+            if(e.getMessage().equals("java.io.IOException: Exceeded configured input limit")) {
+                throw new DokumentlagerIOException(e.getMessage(), e);
             }
             throw new RuntimeException(e);
         }

@@ -76,7 +76,7 @@ public class DokumentlagerKlient implements Closeable {
             @NonNull UUID fiksOrganisasjonId,
             @NonNull UUID kontoId,
             boolean skalKrypteres,
-            Long maksStorrelse
+            long maksStorrelse
     ) {
         try {
             // Not closing this, as closing the incoming stream might cause problems if it is reused, for example when reading a ZIP with multiple files using ZipArchiveInputStream
@@ -262,7 +262,7 @@ public class DokumentlagerKlient implements Closeable {
         BoundedInputStream.Builder builder = BoundedInputStream.builder().setInputStream(stream).setPropagateClose(false);
         if (maksStorrelse > 0) {
             builder.setMaxCount(maksStorrelse).setOnMaxCount((a, b) -> {
-                        throw new IOException("Exceeded configured input limit of "+ maksStorrelse + " bytes");
+                        throw new DokumentlagerIOException("Exceeded configured input limit", null);
                     });
         }
         return builder.get();
