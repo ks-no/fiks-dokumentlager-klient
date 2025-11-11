@@ -2,6 +2,9 @@ package no.ks.fiks.dokumentlager.klient;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import no.ks.fiks.dokumentlager.klient.exception.DokumentTooLargeException;
+import no.ks.fiks.dokumentlager.klient.exception.DokumentlagerIOException;
+import no.ks.fiks.dokumentlager.klient.exception.EmptyDokumentException;
 import no.ks.fiks.dokumentlager.klient.model.*;
 import no.ks.kryptering.CMSKrypteringImpl;
 import no.ks.kryptering.CMSStreamKryptering;
@@ -262,7 +265,7 @@ public class DokumentlagerKlient implements Closeable {
         BoundedInputStream.Builder builder = BoundedInputStream.builder().setInputStream(stream).setPropagateClose(false);
         if (maksStorrelse > 0) {
             builder.setMaxCount(maksStorrelse).setOnMaxCount((a, b) -> {
-                        throw new DokumentlagerIOException("Exceeded configured input limit", null);
+                        throw new DokumentTooLargeException("Exceeded configured input limit", null);
                     });
         }
         return builder.get();

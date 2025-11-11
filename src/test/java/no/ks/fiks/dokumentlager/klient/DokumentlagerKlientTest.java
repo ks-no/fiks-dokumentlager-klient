@@ -1,5 +1,8 @@
 package no.ks.fiks.dokumentlager.klient;
 
+import no.ks.fiks.dokumentlager.klient.exception.DokumentTooLargeException;
+import no.ks.fiks.dokumentlager.klient.exception.DokumentlagerIOException;
+import no.ks.fiks.dokumentlager.klient.exception.EmptyDokumentException;
 import no.ks.fiks.dokumentlager.klient.model.*;
 import no.ks.fiks.dokumentlager.klient.model.eksponertfor.EksponertForIntegrasjon;
 import no.ks.kryptering.CMSKrypteringImpl;
@@ -184,7 +187,7 @@ class DokumentlagerKlientTest {
                 .sikkerhetsniva(3)
                 .build();
 
-        DokumentlagerIOException exception = assertThrows(DokumentlagerIOException.class, () ->   klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId, false, 259L));
+        DokumentTooLargeException exception = assertThrows(DokumentTooLargeException.class, () ->   klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId, false, 259L));
         assertThat(exception.getMessage(), is("Exceeded configured input limit"));
     }
 

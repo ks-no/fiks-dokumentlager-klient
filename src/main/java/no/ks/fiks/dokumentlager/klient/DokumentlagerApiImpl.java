@@ -3,6 +3,9 @@ package no.ks.fiks.dokumentlager.klient;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import no.ks.fiks.dokumentlager.klient.authentication.AuthenticationStrategy;
+import no.ks.fiks.dokumentlager.klient.exception.DokumentTooLargeException;
+import no.ks.fiks.dokumentlager.klient.exception.DokumentlagerHttpException;
+import no.ks.fiks.dokumentlager.klient.exception.DokumentlagerIOException;
 import no.ks.fiks.dokumentlager.klient.model.*;
 import no.ks.fiks.dokumentlager.klient.path.DefaultPathHandler;
 import no.ks.fiks.dokumentlager.klient.path.PathHandler;
@@ -101,7 +104,12 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
             }
 
             return buildResponse(response, mapper.fromJson(response.getContent(), DokumentMetadataUploadResult.class));
-        } catch (InterruptedException | TimeoutException | ExecutionException e) {
+        } catch(ExecutionException e) {
+            if(e.getCause() instanceof RuntimeException ex) {
+                    throw ex;
+            }
+            throw new RuntimeException(e);
+        } catch (InterruptedException | TimeoutException  e) {
             if(e.getMessage().equals("java.io.IOException: Exceeded configured input limit")) {
                 throw new DokumentlagerIOException(e.getMessage(), e);
             }
