@@ -6,4 +6,6 @@ public class DokumentTooLargeException extends RuntimeException{
         super(message, cause);
     }
 
+    public DokumentTooLargeException(String message) { super(message); }
+
 }

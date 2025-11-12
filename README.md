@@ -30,7 +30,7 @@ Klienten må konfigureres med følgende:
 - authenticationStrategy - Implementasjon av ``AuthenticationStrategy`` som setter nødvendige headers på requests fra klienten. Default implementasjon er ``IntegrasjonAuthenticationStrategy`` som bruker Maskinporten (https://github.com/ks-no/fiks-maskinporten) til å hente access token til ``Authorization`` header, og setter ``IntegrasjonId`` og ``IntegrasjonPassord``.
 
 ### Upload
-Laster opp data fra en InputStream med tilhørende metadata til en gitt konto og organisasjon. Dersom kryptert flagg settes til true, eller sikkerhetsnivå er høyere enn 3 vil klienten hente Dokumentlagerets public key og bruke denne til å kryptere før opplasting. Dersom man legger inn maksStorrelse vil man få 413 Payload Too Large dersom dokumentet er større enn angitt størrelse i byte.
+Laster opp data fra en InputStream med tilhørende metadata til en gitt konto og organisasjon. Dersom kryptert flagg settes til true, eller sikkerhetsnivå er høyere enn 3 vil klienten hente Dokumentlagerets public key og bruke denne til å kryptere før opplasting. Dersom man legger inn maksStorrelse vil man få DokumentTooLargeException dersom dokumentet er større enn angitt størrelse i byte.
 
 ### Delete
 Sletter dokumentet med spesifisert id fra en gitt konto og organisasjon.

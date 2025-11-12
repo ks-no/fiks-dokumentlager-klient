@@ -33,7 +33,7 @@ public class DokumentlagerPipedInputStream extends PipedInputStream {
     }
 
     private void checkException() throws IOException {
-        if(exception != null) {
+        if (exception != null) {
             if (exception instanceof RuntimeException r) throw r;
             if (exception instanceof IOException ex) throw ex;
             throw new IOException(exception.getMessage(), exception);

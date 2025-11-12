@@ -170,7 +170,7 @@ class DokumentlagerKlientTest {
     }
 
     @Test
-    @DisplayName("Ved opplasting av et dokument med storrelsebegrensning skal API kalles med innsendt data")
+    @DisplayName("Ved opplasting av et dokument med storrelsebegrensning skal API kaste DokumentTooLargeException")
     void uploadDokumentMedStorrelse() {
         byte[] data = new byte[ThreadLocalRandom.current().nextInt(10000, 100000)];
         new Random().nextBytes(data);

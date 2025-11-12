@@ -145,7 +145,7 @@ public class DokumentlagerKlient implements Closeable {
         } catch (IOException e) {
             throw new DokumentlagerIOException(e.getMessage(), e);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            log.error("Upload failed", e);
+            log.warn("Upload failed", e);
             throw new RuntimeException(e);
         } finally {
             avbrytKrypteringFuture(krypteringFuture);
@@ -261,11 +261,11 @@ public class DokumentlagerKlient implements Closeable {
         executor.shutdown();
     }
 
-    private BoundedInputStream lagBoundedInputStream(PushbackInputStream stream, Long maksStorrelse) throws IOException {
+    private BoundedInputStream lagBoundedInputStream(PushbackInputStream stream, long maksStorrelse) throws IOException {
         BoundedInputStream.Builder builder = BoundedInputStream.builder().setInputStream(stream).setPropagateClose(false);
         if (maksStorrelse > 0) {
             builder.setMaxCount(maksStorrelse).setOnMaxCount((a, b) -> {
-                        throw new DokumentTooLargeException("Exceeded configured input limit", null);
+                        throw new DokumentTooLargeException("Exceeded configured input limit");
                     });
         }
         return builder.get();
