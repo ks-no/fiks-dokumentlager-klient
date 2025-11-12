@@ -105,11 +105,11 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
 
             return buildResponse(response, mapper.fromJson(response.getContent(), DokumentMetadataUploadResult.class));
         } catch (ExecutionException e) {
-            if(e.getCause() instanceof RuntimeException ex) {
-                    throw ex;
+            if (e.getCause() instanceof RuntimeException ex) {
+                throw ex;
             }
             throw new RuntimeException(e);
-        } catch (InterruptedException | TimeoutException  e) {
+        } catch (InterruptedException | TimeoutException e) {
             throw new RuntimeException(e);
         }
     }
