@@ -188,7 +188,7 @@ class DokumentlagerKlientTest {
                 .build();
 
         DokumentTooLargeException exception = assertThrows(DokumentTooLargeException.class, () ->   klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId, false, 259L));
-        assertThat(exception.getMessage(), is("Exceeded configured input limit"));
+        assertThat(exception.getMessage(), is("Exceeded configured input limit of 259 bytes"));
     }
 
     @Test
