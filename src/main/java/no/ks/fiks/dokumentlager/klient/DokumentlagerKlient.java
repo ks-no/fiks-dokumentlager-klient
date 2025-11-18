@@ -265,7 +265,7 @@ public class DokumentlagerKlient implements Closeable {
         BoundedInputStream.Builder builder = BoundedInputStream.builder().setInputStream(stream).setPropagateClose(false);
         if (maksStorrelse > 0) {
             builder.setMaxCount(maksStorrelse).setOnMaxCount((a, b) -> {
-                        throw new DokumentTooLargeException("Exceeded configured input limit");
+                        throw new DokumentTooLargeException("Exceeded configured input limit of " + maksStorrelse + " bytes");
                     });
         }
         return builder.get();
