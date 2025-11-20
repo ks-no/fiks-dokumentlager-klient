@@ -1,4 +1,4 @@
-package no.ks.fiks.dokumentlager.klient;
+package no.ks.fiks.dokumentlager.klient.exception;
 
 public class EmptyDokumentException extends RuntimeException{
 

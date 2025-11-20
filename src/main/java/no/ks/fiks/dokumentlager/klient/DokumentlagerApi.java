@@ -4,7 +4,6 @@ import no.ks.fiks.dokumentlager.klient.model.*;
 
 import java.io.Closeable;
 import java.io.InputStream;
-import java.time.OffsetDateTime;
 import java.util.UUID;
 
 public interface DokumentlagerApi extends Closeable {

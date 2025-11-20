@@ -3,6 +3,7 @@ package no.ks.fiks.dokumentlager.klient;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import no.ks.fiks.dokumentlager.klient.authentication.AuthenticationStrategy;
+import no.ks.fiks.dokumentlager.klient.exception.DokumentlagerHttpException;
 import no.ks.fiks.dokumentlager.klient.model.*;
 import no.ks.fiks.dokumentlager.klient.path.DefaultPathHandler;
 import no.ks.fiks.dokumentlager.klient.path.PathHandler;
@@ -101,7 +102,13 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
             }
 
             return buildResponse(response, mapper.fromJson(response.getContent(), DokumentMetadataUploadResult.class));
-        } catch (InterruptedException | TimeoutException | ExecutionException e) {
+        } catch (ExecutionException e) {
+            // Unngå innpakking av RuntimeException inne i ExecutionException som blir pakket i RuntimeException igjen
+            if (e.getCause() instanceof RuntimeException ex) {
+                throw ex;
+            }
+            throw new RuntimeException(e);
+        } catch (InterruptedException | TimeoutException e) {
             throw new RuntimeException(e);
         }
     }

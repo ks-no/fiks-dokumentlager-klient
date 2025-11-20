@@ -1,5 +1,8 @@
 package no.ks.fiks.dokumentlager.klient;
 
+import no.ks.fiks.dokumentlager.klient.exception.DokumentTooLargeException;
+import no.ks.fiks.dokumentlager.klient.exception.DokumentlagerIOException;
+import no.ks.fiks.dokumentlager.klient.exception.EmptyDokumentException;
 import no.ks.fiks.dokumentlager.klient.model.*;
 import no.ks.fiks.dokumentlager.klient.model.eksponertfor.EksponertForIntegrasjon;
 import no.ks.kryptering.CMSKrypteringImpl;
@@ -100,7 +103,7 @@ class DokumentlagerKlientTest {
                 .build();
 
         klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId);
-        verify(api, times(1)).uploadDokument(isA(PushbackInputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(false));
+        verify(api, times(1)).uploadDokument(isA(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(false));
         assertThat(uploadedBytes, is(data));
     }
 
@@ -144,7 +147,6 @@ class DokumentlagerKlientTest {
         assertThat(exception.getMessage(), is("Cannot upload document without content"));
     }
 
-
     @Test
     @DisplayName("Ved opplasting av et dokument som allerede er kryptert skal API kalles med innsendt data")
     void uploadAlreadyEncryptedDokument() {
@@ -165,6 +167,28 @@ class DokumentlagerKlientTest {
 
         klient.uploadAlreadyEncrypted(dokumentData, metadata, fiksOrganisasjonId, kontoId);
         verify(api, times(1)).uploadDokument(eq(dokumentData), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
+    }
+
+    @Test
+    @DisplayName("Ved opplasting av et dokument med storrelsebegrensning skal API kaste DokumentTooLargeException")
+    void uploadDokumentMedStorrelse() {
+        byte[] data = new byte[ThreadLocalRandom.current().nextInt(10000, 100000)];
+        new Random().nextBytes(data);
+
+        ByteArrayInputStream dokumentData = new ByteArrayInputStream(data);
+        UUID fiksOrganisasjonId = UUID.randomUUID();
+        UUID kontoId = UUID.randomUUID();
+
+        DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
+                .dokumentnavn("uploadAlreadyEncryptedDokument.pdf")
+                .mimetype("application/pdf")
+                .ttl(-1L)
+                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
+                .sikkerhetsniva(3)
+                .build();
+
+        DokumentTooLargeException exception = assertThrows(DokumentTooLargeException.class, () ->   klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId, false, 259L));
+        assertThat(exception.getMessage(), is("Exceeded configured input limit of 259 bytes"));
     }
 
     @Test
@@ -207,7 +231,7 @@ class DokumentlagerKlientTest {
                 .build();
 
         klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true);
-        verify(api, times(1)).uploadDokument(any(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
+        verify(api, times(1)).uploadDokument(any(DokumentlagerPipedInputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
         assertDataEncrypted(data);
     }
 
@@ -243,7 +267,7 @@ class DokumentlagerKlientTest {
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
                 klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true));
         assertThat(exception.getMessage(), is(expected.getMessage()));
-        verify(api, times(1)).uploadDokument(any(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
+        verify(api, times(1)).uploadDokument(any(DokumentlagerPipedInputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
     }
 
 
@@ -268,7 +292,7 @@ class DokumentlagerKlientTest {
                 .result(PUBLIC_KEY)
                 .httpStatus(200)
                 .build());
-        when(api.uploadDokument(any(InputStream.class), any(DokumentMetadataUpload.class), any(UUID.class), any(UUID.class), anyBoolean()))
+        when(api.uploadDokument(any(DokumentlagerPipedInputStream.class), any(DokumentMetadataUpload.class), any(UUID.class), any(UUID.class), anyBoolean()))
                 .then(a -> {
                     throw expected;
                 });
@@ -279,7 +303,7 @@ class DokumentlagerKlientTest {
         RuntimeException exception = assertThrows(DokumentlagerIOException.class, () ->
                 klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true));
         assertThat(exception.getMessage(), is(expected.getMessage()));
-        verify(api, times(1)).uploadDokument(any(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
+        verify(api, times(1)).uploadDokument(any(DokumentlagerPipedInputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
     }
 
     @Test
@@ -328,7 +352,7 @@ class DokumentlagerKlientTest {
                 klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true));
         assertThrows(RuntimeException.class, () ->
                 klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true));
-        DokumentlagerResponse<DokumentMetadataUploadResult> dokumentlagerResponse = klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true);
+        DokumentlagerResponse<DokumentMetadataUploadResult> dokumentlagerResponse = klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true,0L);
         assertThat(dokumentlagerResponse.getHttpStatus(), is(200));
     }
 
@@ -501,7 +525,7 @@ class DokumentlagerKlientTest {
                 throw new RuntimeException(e);
             }
         });
-        verify(api, times(20)).uploadDokument(isA(PushbackInputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(false));
+        verify(api, times(20)).uploadDokument(isA(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(false));
         assertThat(uploadedBytes, is(data));
         executorService.shutdown();
     }

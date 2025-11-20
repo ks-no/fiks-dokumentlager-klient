@@ -2,9 +2,13 @@ package no.ks.fiks.dokumentlager.klient;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import no.ks.fiks.dokumentlager.klient.exception.DokumentTooLargeException;
+import no.ks.fiks.dokumentlager.klient.exception.DokumentlagerIOException;
+import no.ks.fiks.dokumentlager.klient.exception.EmptyDokumentException;
 import no.ks.fiks.dokumentlager.klient.model.*;
 import no.ks.kryptering.CMSKrypteringImpl;
 import no.ks.kryptering.CMSStreamKryptering;
+import org.apache.commons.io.input.BoundedInputStream;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.MDC;
 
@@ -48,7 +52,15 @@ public class DokumentlagerKlient implements Closeable {
                                                                       @NonNull DokumentMetadataUpload metadata,
                                                                       @NonNull UUID fiksOrganisasjonId,
                                                                       @NonNull UUID kontoId) {
-        return upload(dokumentStream, metadata, fiksOrganisasjonId, kontoId, false);
+        return upload(dokumentStream, metadata, fiksOrganisasjonId, kontoId, false, 0L);
+    }
+
+    public DokumentlagerResponse<DokumentMetadataUploadResult> upload(@NonNull InputStream dokumentStream,
+                                                                      @NonNull DokumentMetadataUpload metadata,
+                                                                      @NonNull UUID fiksOrganisasjonId,
+                                                                      @NonNull UUID kontoId, boolean skalKrypteres) {
+
+        return upload(dokumentStream, metadata, fiksOrganisasjonId, kontoId, skalKrypteres, 0L);
     }
 
     public DokumentlagerResponse<DokumentMetadataUploadResult> uploadAlreadyEncrypted(@NonNull InputStream dokumentStream,
@@ -66,7 +78,8 @@ public class DokumentlagerKlient implements Closeable {
             @NonNull DokumentMetadataUpload metadata,
             @NonNull UUID fiksOrganisasjonId,
             @NonNull UUID kontoId,
-            boolean skalKrypteres
+            boolean skalKrypteres,
+            long maksStorrelse
     ) {
         try {
             // Not closing this, as closing the incoming stream might cause problems if it is reused, for example when reading a ZIP with multiple files using ZipArchiveInputStream
@@ -81,11 +94,12 @@ public class DokumentlagerKlient implements Closeable {
                 log.info("Dokument will be encrypted as sikkerhetsnivå is greater than 3");
                 skalKrypteres = true;
             }
+            BoundedInputStream boundedStream = lagBoundedInputStream(pushbackInputStream, maksStorrelse);
 
             if (skalKrypteres) {
-                return uploadKryptert(pushbackInputStream, metadata, fiksOrganisasjonId, kontoId);
+                return uploadKryptert(boundedStream, metadata, fiksOrganisasjonId, kontoId);
             } else {
-                return uploadUkryptert(pushbackInputStream, metadata, fiksOrganisasjonId, kontoId);
+                return uploadUkryptert(boundedStream, metadata, fiksOrganisasjonId, kontoId);
             }
         } catch (IOException e) {
             throw new DokumentlagerIOException(e.getMessage(), e);
@@ -131,7 +145,7 @@ public class DokumentlagerKlient implements Closeable {
         } catch (IOException e) {
             throw new DokumentlagerIOException(e.getMessage(), e);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            log.error("Upload failed", e);
+            log.warn("Upload failed", e);
             throw new RuntimeException(e);
         } finally {
             avbrytKrypteringFuture(krypteringFuture);
@@ -153,7 +167,7 @@ public class DokumentlagerKlient implements Closeable {
             kryptering.krypterData(pipedOutputStream, dokumentStream, publicCertificate, provider);
             log.info("Encryption completed...");
         } catch (Exception e) {
-            log.error("Encryption failed, setting exception on encrypted InputStream", e);
+            log.warn("Encryption failed, setting exception on encrypted InputStream", e);
             pipedInputStream.setException(e);
         } finally {
             try {
@@ -161,7 +175,7 @@ public class DokumentlagerKlient implements Closeable {
                 pipedOutputStream.close();
                 log.debug("Encryption OutputStream closed");
             } catch (IOException e) {
-                log.error("Failed closing encryption OutputStream", e);
+                log.warn("Failed closing encryption OutputStream", e);
                 throw new RuntimeException(e);
             } finally {
                 MDC.clear();
@@ -245,6 +259,16 @@ public class DokumentlagerKlient implements Closeable {
     public void close() throws IOException {
         api.close();
         executor.shutdown();
+    }
+
+    private BoundedInputStream lagBoundedInputStream(PushbackInputStream stream, long maksStorrelse) throws IOException {
+        BoundedInputStream.Builder builder = BoundedInputStream.builder().setInputStream(stream).setPropagateClose(false);
+        if (maksStorrelse > 0) {
+            builder.setMaxCount(maksStorrelse).setOnMaxCount((a, b) -> {
+                        throw new DokumentTooLargeException("Exceeded configured input limit of " + maksStorrelse + " bytes");
+                    });
+        }
+        return builder.get();
     }
 
     public static class DokumentlagerKlientBuilder {
