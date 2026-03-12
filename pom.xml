@@ -31,13 +31,13 @@
 
     <fiks-kryptering.version>2.2.0</fiks-kryptering.version>
 
-    <lombok.version>1.18.42</lombok.version>
+    <lombok.version>1.18.44</lombok.version>
     <jetty-client.version>12.0.3</jetty-client.version>
     <commons-io.version>2.21.0</commons-io.version>
 
     <junit-jupiter.version>6.0.3</junit-jupiter.version>
     <hamcrest.version>3.0</hamcrest.version>
-    <mockito-core.version>5.22.0</mockito-core.version>
+    <mockito-core.version>5.23.0</mockito-core.version>
     <testcontainers.version>1.21.4</testcontainers.version>
     <mockserver-client.version>5.15.0</mockserver-client.version>
     <fiks-maskinporten-client.version>3.6.0</fiks-maskinporten-client.version>
