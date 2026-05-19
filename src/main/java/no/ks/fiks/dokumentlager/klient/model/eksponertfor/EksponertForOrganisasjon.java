@@ -6,11 +6,11 @@ import lombok.Value;
 public class EksponertForOrganisasjon implements EksponertFor {
 
     String orgnr;
-    RessursType ressursType;
+    String ressursId;
 
-    public EksponertForOrganisasjon(String orgnr, RessursType ressursType) {
+    public EksponertForOrganisasjon(String orgnr, String ressursId) {
         this.orgnr = orgnr;
-        this.ressursType = ressursType;
+        this.ressursId = ressursId;
     }
 
     public EksponertForOrganisasjon(String orgnr) {
