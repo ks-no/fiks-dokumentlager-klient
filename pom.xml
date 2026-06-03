@@ -32,7 +32,7 @@
     <fiks-kryptering.version>2.2.2</fiks-kryptering.version>
 
     <lombok.version>1.18.46</lombok.version>
-    <jetty-client.version>12.1.9</jetty-client.version>
+    <jetty-client.version>12.1.10</jetty-client.version>
     <commons-io.version>2.22.0</commons-io.version>
 
     <junit-jupiter.version>6.1.0</junit-jupiter.version>
