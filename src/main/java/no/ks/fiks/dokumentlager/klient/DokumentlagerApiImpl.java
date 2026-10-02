@@ -43,6 +43,8 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
     private static final String METADATA_PART = "metadata";
     private static final String DOKUMENT_PART = "dokument";
 
+    private static final int BYTE_BUFFER_SIZE = 4096;
+
     private final JsonMapper mapper = new JsonMapper();
 
     private final HttpClient client;
@@ -56,12 +58,14 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
 
     private final Function<Request, Request> requestInterceptor;
 
-    private DokumentlagerApiImpl(@NonNull String uploadBaseUrl,
-                                 @NonNull String downloadBaseUrl,
-                                 @NonNull AuthenticationStrategy authenticationStrategy,
-                                 Function<Request, Request> requestInterceptor,
-                                 @NonNull PathHandler pathHandler,
-                                 @NonNull HttpConfiguration httpConfiguration) {
+    private DokumentlagerApiImpl(
+            @NonNull String uploadBaseUrl,
+            @NonNull String downloadBaseUrl,
+            @NonNull AuthenticationStrategy authenticationStrategy,
+            Function<Request, Request> requestInterceptor,
+            @NonNull PathHandler pathHandler,
+            @NonNull HttpConfiguration httpConfiguration
+    ) {
         this.uploadbaseUrl = uploadBaseUrl;
         this.downloadBaseUrl = downloadBaseUrl;
         this.authenticationStrategy = authenticationStrategy;
@@ -154,7 +158,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
                         HttpFields.from(
                                 new HttpField(HttpHeader.CONTENT_TYPE, ContentType.APPLICATION_OCTET_STREAM.getMimeType())
                         ),
-                        new InputStreamRequestContent("application/octet-stream", dokumentStream, new ByteBufferPool.Sized(null, false, 4096))
+                        new InputStreamRequestContent(ContentType.APPLICATION_OCTET_STREAM.getMimeType(), dokumentStream, new ByteBufferPool.Sized(null, false, BYTE_BUFFER_SIZE))
                 )
         );
     }
