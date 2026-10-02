@@ -171,7 +171,6 @@
               <inputSpec>fiks-dokumentlager-specs/specs/dokumentlager-upload-api-v1.json</inputSpec>
               <generatorName>java</generatorName>
               <configOptions>
-                <dateLibrary>java8</dateLibrary>
                 <library>feign</library>
                 <serializationLibrary>jackson</serializationLibrary>
                 <openApiNullable>false</openApiNullable>
