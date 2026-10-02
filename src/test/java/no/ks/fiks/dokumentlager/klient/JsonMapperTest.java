@@ -1,10 +1,14 @@
 package no.ks.fiks.dokumentlager.klient;
 
 import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataDownloadResult;
-import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataUpload;
-import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataUploadResult;
 import no.ks.fiks.dokumentlager.klient.model.Sokeresultat;
-import no.ks.fiks.dokumentlager.klient.model.eksponertfor.*;
+import no.ks.fiks.dokumentlager.upload.v1.DokumentMetadataUpload;
+import no.ks.fiks.dokumentlager.upload.v1.DokumentMetadataUploadResult;
+import no.ks.fiks.dokumentlager.upload.v1.EksponertFor;
+import no.ks.fiks.dokumentlager.upload.v1.EksponertForAutorisasjon;
+import no.ks.fiks.dokumentlager.upload.v1.EksponertForIntegrasjon;
+import no.ks.fiks.dokumentlager.upload.v1.EksponertForOrganisasjon;
+import no.ks.fiks.dokumentlager.upload.v1.EksponertForPerson;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
@@ -24,7 +28,7 @@ public class JsonMapperTest {
     @RepeatedTest(100)
     @DisplayName("Test at metadata serialiseres korrekt")
     void testToJson() {
-        DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
+        DokumentMetadataUpload metadata = new DokumentMetadataUpload()
                 .dokumentnavn(UUID.randomUUID().toString())
                 .mimetype(UUID.randomUUID().toString())
                 .ttl(ThreadLocalRandom.current().nextLong())
@@ -32,8 +36,7 @@ public class JsonMapperTest {
                 .eksponertFor(randomEksponertForSet())
                 .sikkerhetsniva(ThreadLocalRandom.current().nextInt())
                 .korrelasjonsid(UUID.randomUUID())
-                .ikkeLagreDokumentLastetNed(ThreadLocalRandom.current().nextBoolean())
-                .build();
+                .ikkeLagreDokumentLastetNed(ThreadLocalRandom.current().nextBoolean());
         String json = new JsonMapper()
                 .toJson(metadata);
         assertHasJsonFieldWithValue(json, "dokumentnavn", metadata.getDokumentnavn());
@@ -56,13 +59,13 @@ public class JsonMapperTest {
 
     private void assertHasEksponertFor(String json, EksponertFor eksponertFor) {
         if (eksponertFor instanceof EksponertForPerson) {
-            assertThat(json, containsString(String.format("{\"fnr\":\"%s\",\"type\":\"PERSON\"}", ((EksponertForPerson) eksponertFor).getFnr())));
+            assertThat(json, containsString(String.format("{\"type\":\"PERSON\",\"fnr\":\"%s\"}", ((EksponertForPerson) eksponertFor).getFnr())));
         } else if (eksponertFor instanceof EksponertForOrganisasjon) {
-            assertThat(json, containsString(String.format("{\"orgnr\":\"%s\",\"ressursId\":null,\"type\":\"ORGANISASJON\"}", ((EksponertForOrganisasjon) eksponertFor).getOrgnr())));
+            assertThat(json, containsString(String.format("{\"type\":\"ORGANISASJON\",\"orgnr\":\"%s\",\"ressursId\":null}", ((EksponertForOrganisasjon) eksponertFor).getOrgnr())));
         } else if (eksponertFor instanceof EksponertForIntegrasjon) {
-            assertThat(json, containsString(String.format("{\"id\":\"%s\",\"type\":\"INTEGRASJON\"}", ((EksponertForIntegrasjon) eksponertFor).getId())));
+            assertThat(json, containsString(String.format("{\"type\":\"INTEGRASJON\",\"id\":\"%s\"}", ((EksponertForIntegrasjon) eksponertFor).getId())));
         } else if (eksponertFor instanceof EksponertForAutorisasjon) {
-            assertThat(json, containsString(String.format("{\"privilegium\":\"%s\",\"ressurs\":\"%s\",\"type\":\"AUTORISASJON\"}", ((EksponertForAutorisasjon) eksponertFor).getPrivilegium(), ((EksponertForAutorisasjon) eksponertFor).getRessurs())));
+            assertThat(json, containsString(String.format("{\"type\":\"AUTORISASJON\",\"privilegium\":\"%s\",\"ressurs\":\"%s\"}", ((EksponertForAutorisasjon) eksponertFor).getPrivilegium(), ((EksponertForAutorisasjon) eksponertFor).getRessurs())));
         }
     }
 
@@ -76,10 +79,10 @@ public class JsonMapperTest {
 
     private static EksponertFor randomEksponertFor() {
         return switch (ThreadLocalRandom.current().nextInt(0, 4)) {
-            case 0 -> new EksponertForPerson(UUID.randomUUID().toString());
-            case 1 -> new EksponertForOrganisasjon(UUID.randomUUID().toString(), null);
-            case 2 -> new EksponertForIntegrasjon(UUID.randomUUID());
-            case 3 -> new EksponertForAutorisasjon(UUID.randomUUID().toString(), UUID.randomUUID());
+            case 0 -> new EksponertForPerson().fnr(UUID.randomUUID().toString());
+            case 1 -> new EksponertForOrganisasjon().orgnr(UUID.randomUUID().toString()).ressursId(null);
+            case 2 -> new EksponertForIntegrasjon().id(UUID.randomUUID());
+            case 3 -> new EksponertForAutorisasjon().privilegium(UUID.randomUUID().toString()).ressurs(UUID.randomUUID());
             default -> throw new RuntimeException("Ugyldig index for eksponertFor");
         };
     }

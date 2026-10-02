@@ -29,18 +29,21 @@
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+    <fiks-maskinporten-client.version>3.6.1</fiks-maskinporten-client.version>
     <fiks-kryptering.version>2.2.2</fiks-kryptering.version>
 
     <lombok.version>1.18.46</lombok.version>
     <jetty-client.version>12.1.9</jetty-client.version>
     <commons-io.version>2.22.0</commons-io.version>
+    <jakarta.annotation-api.version>3.0.0</jakarta.annotation-api.version>
 
     <junit-jupiter.version>6.1.0</junit-jupiter.version>
     <hamcrest.version>3.0</hamcrest.version>
     <mockito-core.version>5.23.0</mockito-core.version>
     <testcontainers.version>1.21.4</testcontainers.version>
     <mockserver-client.version>5.15.0</mockserver-client.version>
-    <fiks-maskinporten-client.version>3.6.1</fiks-maskinporten-client.version>
+
+    <openapi-generator-maven-plugin.version>7.25.0</openapi-generator-maven-plugin.version>
   </properties>
 
   <dependencies>
@@ -56,6 +59,11 @@
     </dependency>
 
 
+    <dependency>
+      <groupId>jakarta.annotation</groupId>
+      <artifactId>jakarta.annotation-api</artifactId>
+      <version>${jakarta.annotation-api.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
@@ -145,6 +153,36 @@
             <goals>
               <goal>jar</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.openapitools</groupId>
+        <artifactId>openapi-generator-maven-plugin</artifactId>
+        <version>${openapi-generator-maven-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>generate-upload-models</id>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <phase>generate-sources</phase>
+            <configuration>
+              <inputSpec>fiks-dokumentlager-specs/specs/dokumentlager-upload-api-v1.json</inputSpec>
+              <generatorName>java</generatorName>
+              <configOptions>
+                <library>feign</library>
+                <serializationLibrary>jackson</serializationLibrary>
+                <openApiNullable>false</openApiNullable>
+                <useJakartaEe>true</useJakartaEe>
+              </configOptions>
+              <modelPackage>no.ks.fiks.dokumentlager.upload.v1</modelPackage>
+              <generateApis>false</generateApis>
+              <generateSupportingFiles>false</generateSupportingFiles>
+              <generateApiTests>false</generateApiTests>
+              <generateModelTests>false</generateModelTests>
+              <addCompileSourceRoot>true</addCompileSourceRoot>
+            </configuration>
           </execution>
         </executions>
       </plugin>

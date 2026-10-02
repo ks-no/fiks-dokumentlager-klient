@@ -1,0 +1,3 @@
+[submodule "fiks-dokumentlager-specs"]
+	path = fiks-dokumentlager-specs
+	url = ../fiks-dokumentlager-specs
