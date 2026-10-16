@@ -12,9 +12,10 @@ Artefakter er tilgjengelig på Maven central.
 
 | Versjon | Jetty versjon | Status      | 
 |---------|---------------|-------------|
-| 4.x     | 12.x          | Aktiv       | 
-| 3.x     | 12.x          | Vedlikehold | 
-| 2.x     | 11.x          | Vedlikehold |
+| 5.x     | 12.x          | Aktiv       | 
+| 4.x     | 12.x          | Deprecated  | 
+| 3.x     | 12.x          | Deprecated  | 
+| 2.x     | 11.x          | Deprecated  |
 
 ## dokumentlager-klient
 ```xml
