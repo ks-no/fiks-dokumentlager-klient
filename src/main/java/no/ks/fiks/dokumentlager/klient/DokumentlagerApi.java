@@ -1,6 +1,12 @@
 package no.ks.fiks.dokumentlager.klient;
 
-import no.ks.fiks.dokumentlager.klient.model.*;
+import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataDownloadResult;
+import no.ks.fiks.dokumentlager.klient.model.DokumentlagerResponse;
+import no.ks.fiks.dokumentlager.klient.model.Sokeresultat;
+import no.ks.fiks.dokumentlager.upload.v1.DokumentMetadataUpdate;
+import no.ks.fiks.dokumentlager.upload.v1.DokumentMetadataUpdateResult;
+import no.ks.fiks.dokumentlager.upload.v1.DokumentMetadataUpload;
+import no.ks.fiks.dokumentlager.upload.v1.DokumentMetadataUploadResult;
 
 import java.io.Closeable;
 import java.io.InputStream;

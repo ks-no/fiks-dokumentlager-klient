@@ -4,7 +4,10 @@ import no.ks.fiks.dokumentlager.klient.exception.DokumentTooLargeException;
 import no.ks.fiks.dokumentlager.klient.exception.DokumentlagerIOException;
 import no.ks.fiks.dokumentlager.klient.exception.EmptyDokumentException;
 import no.ks.fiks.dokumentlager.klient.model.*;
-import no.ks.fiks.dokumentlager.klient.model.eksponertfor.EksponertForIntegrasjon;
+import no.ks.fiks.dokumentlager.upload.v1.DokumentMetadataUpdate;
+import no.ks.fiks.dokumentlager.upload.v1.DokumentMetadataUpload;
+import no.ks.fiks.dokumentlager.upload.v1.DokumentMetadataUploadResult;
+import no.ks.fiks.dokumentlager.upload.v1.EksponertForIntegrasjon;
 import no.ks.kryptering.CMSKrypteringImpl;
 import no.ks.kryptering.CMSStreamKryptering;
 import org.apache.commons.io.IOUtils;
@@ -65,7 +68,12 @@ class DokumentlagerKlientTest {
                         DokumentMetadataUpload metadata = a.getArgument(1);
                         uploadedBytes = IOUtils.toByteArray(inputStream);
                         return DokumentlagerResponse.<DokumentMetadataUploadResult>builder()
-                                .result(new DokumentMetadataUploadResult(UUID.randomUUID(), metadata.getDokumentnavn(), metadata.getMimetype(), (long) uploadedBytes.length, (long) uploadedBytes.length + 500))
+                                .result(new DokumentMetadataUploadResult()
+                                        .id(UUID.randomUUID())
+                                        .dokumentnavn(metadata.getDokumentnavn())
+                                        .mimeType(metadata.getMimetype())
+                                        .ukryptertStorrelse((long) uploadedBytes.length)
+                                        .kryptertStorrelse((long) uploadedBytes.length + 500))
                                 .httpStatus(200)
                                 .httpHeaders(emptyMap())
                                 .build();
@@ -93,14 +101,13 @@ class DokumentlagerKlientTest {
         UUID fiksOrganisasjonId = UUID.randomUUID();
         UUID kontoId = UUID.randomUUID();
 
-        DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
+        DokumentMetadataUpload metadata = new DokumentMetadataUpload()
                 .dokumentnavn("uploadDokumentNiva3UtenFlag.pdf")
                 .mimetype("application/pdf")
                 .ttl(-1L)
                 .tilgjengeligTil(OffsetDateTime.now())
-                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
-                .sikkerhetsniva(3)
-                .build();
+                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon().id(UUID.randomUUID())))))
+                .sikkerhetsniva(3);
 
         klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId);
         verify(api, times(1)).uploadDokument(isA(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(false));
@@ -115,13 +122,13 @@ class DokumentlagerKlientTest {
         UUID fiksOrganisasjonId = UUID.randomUUID();
         UUID kontoId = UUID.randomUUID();
 
-        DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
+        DokumentMetadataUpload metadata = new DokumentMetadataUpload()
                 .dokumentnavn("uploadDokumentNiva3UtenFlag.pdf")
                 .mimetype("application/pdf")
                 .ttl(-1L)
-                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
+                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon().id(UUID.randomUUID())))))
                 .sikkerhetsniva(3)
-                .build();
+                ;
 
         EmptyDokumentException exception = assertThrows(EmptyDokumentException.class, () -> klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId));
         assertThat(exception.getMessage(), is("Cannot upload document without content"));
@@ -135,13 +142,13 @@ class DokumentlagerKlientTest {
         UUID fiksOrganisasjonId = UUID.randomUUID();
         UUID kontoId = UUID.randomUUID();
 
-        DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
+        DokumentMetadataUpload metadata = new DokumentMetadataUpload()
                 .dokumentnavn("uploadDokumentNiva4UtenFlag.pdf")
                 .mimetype("application/pdf")
                 .ttl(-1L)
-                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
+                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon().id(UUID.randomUUID())))))
                 .sikkerhetsniva(4)
-                .build();
+                ;
 
         EmptyDokumentException exception = assertThrows(EmptyDokumentException.class, () -> klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId));
         assertThat(exception.getMessage(), is("Cannot upload document without content"));
@@ -157,13 +164,13 @@ class DokumentlagerKlientTest {
         UUID fiksOrganisasjonId = UUID.randomUUID();
         UUID kontoId = UUID.randomUUID();
 
-        DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
+        DokumentMetadataUpload metadata = new DokumentMetadataUpload()
                 .dokumentnavn("uploadAlreadyEncryptedDokument.pdf")
                 .mimetype("application/pdf")
                 .ttl(-1L)
-                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
+                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon().id(UUID.randomUUID())))))
                 .sikkerhetsniva(3)
-                .build();
+                ;
 
         klient.uploadAlreadyEncrypted(dokumentData, metadata, fiksOrganisasjonId, kontoId);
         verify(api, times(1)).uploadDokument(eq(dokumentData), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
@@ -179,13 +186,13 @@ class DokumentlagerKlientTest {
         UUID fiksOrganisasjonId = UUID.randomUUID();
         UUID kontoId = UUID.randomUUID();
 
-        DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
+        DokumentMetadataUpload metadata = new DokumentMetadataUpload()
                 .dokumentnavn("uploadAlreadyEncryptedDokument.pdf")
                 .mimetype("application/pdf")
                 .ttl(-1L)
-                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
+                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon().id(UUID.randomUUID())))))
                 .sikkerhetsniva(3)
-                .build();
+                ;
 
         DokumentTooLargeException exception = assertThrows(DokumentTooLargeException.class, () ->   klient.upload(dokumentData, metadata, fiksOrganisasjonId, kontoId, false, 259L));
         assertThat(exception.getMessage(), is("Exceeded configured input limit of 259 bytes"));
@@ -200,13 +207,13 @@ class DokumentlagerKlientTest {
         UUID fiksOrganisasjonId = UUID.randomUUID();
         UUID kontoId = UUID.randomUUID();
 
-        DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
+        DokumentMetadataUpload metadata = new DokumentMetadataUpload()
                 .dokumentnavn("uploadDokumentNiva4UtenFlag.pdf")
                 .mimetype("application/pdf")
                 .ttl(-1L)
-                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
+                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon().id(UUID.randomUUID())))))
                 .sikkerhetsniva(4)
-                .build();
+                ;
 
         klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId);
         verify(api, times(1)).uploadDokument(any(InputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
@@ -222,13 +229,13 @@ class DokumentlagerKlientTest {
         UUID fiksOrganisasjonId = UUID.randomUUID();
         UUID kontoId = UUID.randomUUID();
 
-        DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
+        DokumentMetadataUpload metadata = new DokumentMetadataUpload()
                 .dokumentnavn("uploadDokumentKryptert.pdf")
                 .mimetype("application/pdf")
                 .ttl(-1L)
-                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
+                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon().id(UUID.randomUUID())))))
                 .sikkerhetsniva(3)
-                .build();
+                ;
 
         klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true);
         verify(api, times(1)).uploadDokument(any(DokumentlagerPipedInputStream.class), eq(metadata), eq(fiksOrganisasjonId), eq(kontoId), eq(true));
@@ -243,13 +250,13 @@ class DokumentlagerKlientTest {
         new Random().nextBytes(data);
         UUID fiksOrganisasjonId = UUID.randomUUID();
         UUID kontoId = UUID.randomUUID();
-        DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
+        DokumentMetadataUpload metadata = new DokumentMetadataUpload()
                 .dokumentnavn("uploadDokumentKryptert.pdf")
                 .mimetype("application/pdf")
                 .ttl(-1L)
-                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
+                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon().id(UUID.randomUUID())))))
                 .sikkerhetsniva(3)
-                .build();
+                ;
 
         DokumentlagerApi api = mock(DokumentlagerApi.class);
         when(api.getPublicKey()).thenReturn(DokumentlagerResponse.<String>builder()
@@ -279,13 +286,13 @@ class DokumentlagerKlientTest {
         new Random().nextBytes(data);
         UUID fiksOrganisasjonId = UUID.randomUUID();
         UUID kontoId = UUID.randomUUID();
-        DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
+        DokumentMetadataUpload metadata = new DokumentMetadataUpload()
                 .dokumentnavn("uploadDokumentKryptert.pdf")
                 .mimetype("application/pdf")
                 .ttl(-1L)
-                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
+                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon().id(UUID.randomUUID())))))
                 .sikkerhetsniva(3)
-                .build();
+                ;
 
         DokumentlagerApi api = mock(DokumentlagerApi.class);
         when(api.getPublicKey()).thenReturn(DokumentlagerResponse.<String>builder()
@@ -313,13 +320,13 @@ class DokumentlagerKlientTest {
         new Random().nextBytes(data);
         UUID fiksOrganisasjonId = UUID.randomUUID();
         UUID kontoId = UUID.randomUUID();
-        DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
+        DokumentMetadataUpload metadata = new DokumentMetadataUpload()
                 .dokumentnavn("uploadDokumentKryptert.pdf")
                 .mimetype("application/pdf")
                 .ttl(-1L)
-                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
+                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon().id(UUID.randomUUID())))))
                 .sikkerhetsniva(3)
-                .build();
+                ;
 
         DokumentlagerApi api = mock(DokumentlagerApi.class);
         when(api.getPublicKey()).thenReturn(DokumentlagerResponse.<String>builder()
@@ -337,7 +344,12 @@ class DokumentlagerKlientTest {
                     try (InputStream inputStream = a.getArgument(0)) {
                     uploadedBytes = IOUtils.toByteArray(inputStream);
                     return DokumentlagerResponse.<DokumentMetadataUploadResult>builder()
-                        .result(new DokumentMetadataUploadResult(UUID.randomUUID(), metadata.getDokumentnavn(), metadata.getMimetype(), (long) uploadedBytes.length, (long) uploadedBytes.length + 500))
+                        .result(new DokumentMetadataUploadResult()
+                            .id(UUID.randomUUID())
+                            .dokumentnavn(metadata.getDokumentnavn())
+                            .mimeType(metadata.getMimetype())
+                            .ukryptertStorrelse((long) uploadedBytes.length)
+                            .kryptertStorrelse((long) uploadedBytes.length + 500))
                         .httpStatus(200)
                         .httpHeaders(emptyMap())
                         .build();
@@ -367,13 +379,13 @@ class DokumentlagerKlientTest {
         UUID fiksOrganisasjonId = UUID.randomUUID();
         UUID kontoId = UUID.randomUUID();
 
-        DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
+        DokumentMetadataUpload metadata = new DokumentMetadataUpload()
                 .dokumentnavn(dokumentnavn)
                 .mimetype(mimetype)
                 .ttl(-1L)
-                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
+                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon().id(UUID.randomUUID())))))
                 .sikkerhetsniva(3)
-                .build();
+                ;
 
         DokumentlagerResponse<DokumentMetadataUploadResult> upload = klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, false);
         assertThat(upload.getResult(), notNullValue());
@@ -397,13 +409,13 @@ class DokumentlagerKlientTest {
         UUID fiksOrganisasjonId = UUID.randomUUID();
         UUID kontoId = UUID.randomUUID();
 
-        DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
+        DokumentMetadataUpload metadata = new DokumentMetadataUpload()
                 .dokumentnavn("uploadDokumentPublicKeyCaches.pdf")
                 .mimetype("application/pdf")
                 .ttl(-1L)
-                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
+                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon().id(UUID.randomUUID())))))
                 .sikkerhetsniva(3)
-                .build();
+                ;
 
         klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true);
         klient.upload(new ByteArrayInputStream(data), metadata, fiksOrganisasjonId, kontoId, true);
@@ -417,10 +429,10 @@ class DokumentlagerKlientTest {
         UUID fiksOrganisasjonId = UUID.randomUUID();
         UUID kontoId = UUID.randomUUID();
         UUID dokumentId = UUID.randomUUID();
-        DokumentMetadataUpdate metadata = DokumentMetadataUpdate.builder()
+        DokumentMetadataUpdate metadata = new DokumentMetadataUpdate()
                 .ttl(ThreadLocalRandom.current().nextLong())
                 .tilgjengeligTil(OffsetDateTime.now())
-                .build();
+                ;
 
         klient.updateMetadata(fiksOrganisasjonId, kontoId, dokumentId, metadata);
 
@@ -486,7 +498,7 @@ class DokumentlagerKlientTest {
                 .build();
 
         RuntimeException exception = assertThrows(RuntimeException.class, () ->
-                klient.upload(new ByteArrayInputStream(new byte[1]), DokumentMetadataUpload.builder().build(), UUID.randomUUID(), UUID.randomUUID(), true));
+                klient.upload(new ByteArrayInputStream(new byte[1]), new DokumentMetadataUpload().sikkerhetsniva(3), UUID.randomUUID(), UUID.randomUUID(), true));
 
         assertThat(exception.getMessage(), is(message));
     }
@@ -500,13 +512,13 @@ class DokumentlagerKlientTest {
         UUID fiksOrganisasjonId = UUID.randomUUID();
         UUID kontoId = UUID.randomUUID();
 
-        DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
+        DokumentMetadataUpload metadata = new DokumentMetadataUpload()
                 .dokumentnavn("uploadMangeDokumenterSamtidig.pdf")
                 .mimetype("application/pdf")
                 .ttl(-1L)
-                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
+                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon().id(UUID.randomUUID())))))
                 .sikkerhetsniva(3)
-                .build();
+                ;
 
         ExecutorService executorService = Executors.newFixedThreadPool(20);
         List<Future> results = new ArrayList<>();
@@ -540,13 +552,13 @@ class DokumentlagerKlientTest {
         UUID fiksOrganisasjonId = UUID.randomUUID();
         UUID kontoId = UUID.randomUUID();
 
-        DokumentMetadataUpload metadata = DokumentMetadataUpload.builder()
+        DokumentMetadataUpload metadata = new DokumentMetadataUpload()
                 .dokumentnavn("uploadMangeKrypterteDokumenterSamtidig.pdf")
                 .mimetype("application/pdf")
                 .ttl(-1L)
-                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon(UUID.randomUUID())))))
+                .eksponertFor(new HashSet<>(singletonList((new EksponertForIntegrasjon().id(UUID.randomUUID())))))
                 .sikkerhetsniva(4)
-                .build();
+                ;
 
         ExecutorService executorService = Executors.newFixedThreadPool(20);
         List<Future> results = new ArrayList<>();

@@ -2,8 +2,8 @@ package no.ks.fiks.dokumentlager.klient;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataUpload;
-import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataUploadResult;
+import no.ks.fiks.dokumentlager.upload.v1.DokumentMetadataUpload;
+import no.ks.fiks.dokumentlager.upload.v1.DokumentMetadataUploadResult;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -60,7 +60,7 @@ public class TimeoutTest {
                 .build();
         RuntimeException exception = assertThrows(RuntimeException.class, () -> dokumentlagerKlient.upload(
                 new ByteArrayInputStream(new byte[10]),
-                DokumentMetadataUpload.builder().build(),
+                new DokumentMetadataUpload(),
                 fiksOrganisasjonId,
                 kontoId,
                 true));
@@ -88,7 +88,7 @@ public class TimeoutTest {
                 .build();
         RuntimeException exception = assertThrows(RuntimeException.class, () -> dokumentlagerKlient.upload(
                 new ByteArrayInputStream(new byte[10]),
-                DokumentMetadataUpload.builder().build(),
+                new DokumentMetadataUpload(),
                 fiksOrganisasjonId,
                 kontoId));
         assertThat(exception.getCause(), is(instanceOf(TimeoutException.class)));
@@ -115,7 +115,7 @@ public class TimeoutTest {
                 .build();
         RuntimeException exception = assertThrows(RuntimeException.class, () -> dokumentlagerKlient.upload(
                 new ByteArrayInputStream(new byte[10]),
-                DokumentMetadataUpload.builder().build(),
+                new DokumentMetadataUpload(),
                 fiksOrganisasjonId,
                 kontoId,
                 true));
@@ -143,7 +143,7 @@ public class TimeoutTest {
                 .build();
         RuntimeException exception = assertThrows(RuntimeException.class, () -> dokumentlagerKlient.upload(
                 new ByteArrayInputStream(new byte[10]),
-                DokumentMetadataUpload.builder().build(),
+                new DokumentMetadataUpload(),
                 fiksOrganisasjonId,
                 kontoId));
         assertThat(exception.getCause(), is(instanceOf(TimeoutException.class)));
@@ -165,7 +165,12 @@ public class TimeoutTest {
                             .withPath(String.format("/dokumentlager/api/v1/%s/kontoer/%s/dokumenter/", fiksOrganisasjonId, kontoId)))
                     .respond(response()
                             .withDelay(TimeUnit.SECONDS, 10)
-                            .withBody(MAPPER.writeValueAsString(new DokumentMetadataUploadResult(UUID.randomUUID(), UUID.randomUUID().toString(), "application/pdf", 0L, 0L))));
+                            .withBody(MAPPER.writeValueAsString(new DokumentMetadataUploadResult()
+                                    .id(UUID.randomUUID())
+                                    .dokumentnavn(UUID.randomUUID().toString())
+                                    .mimeType("application/pdf")
+                                    .ukryptertStorrelse(0L)
+                                    .kryptertStorrelse(0L))));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

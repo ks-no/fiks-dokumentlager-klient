@@ -4,14 +4,22 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import no.ks.fiks.dokumentlager.klient.authentication.AuthenticationStrategy;
 import no.ks.fiks.dokumentlager.klient.exception.DokumentlagerHttpException;
-import no.ks.fiks.dokumentlager.klient.model.*;
+import no.ks.fiks.dokumentlager.klient.model.DokumentMetadataDownloadResult;
+import no.ks.fiks.dokumentlager.klient.model.DokumentlagerResponse;
+import no.ks.fiks.dokumentlager.klient.model.LazyDokumentlagerResponse;
+import no.ks.fiks.dokumentlager.klient.model.Sokeresultat;
 import no.ks.fiks.dokumentlager.klient.path.DefaultPathHandler;
 import no.ks.fiks.dokumentlager.klient.path.PathHandler;
+import no.ks.fiks.dokumentlager.upload.v1.DokumentMetadataUpdate;
+import no.ks.fiks.dokumentlager.upload.v1.DokumentMetadataUpdateResult;
+import no.ks.fiks.dokumentlager.upload.v1.DokumentMetadataUpload;
+import no.ks.fiks.dokumentlager.upload.v1.DokumentMetadataUploadResult;
 import org.apache.commons.io.IOUtils;
 import org.apache.hc.core5.http.ContentType;
 import org.eclipse.jetty.client.*;
 import org.eclipse.jetty.client.transport.HttpClientTransportDynamic;
 import org.eclipse.jetty.http.*;
+import org.eclipse.jetty.io.ByteBufferPool;
 import org.eclipse.jetty.io.ClientConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
@@ -35,6 +43,8 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
     private static final String METADATA_PART = "metadata";
     private static final String DOKUMENT_PART = "dokument";
 
+    private static final int BYTE_BUFFER_SIZE = 4096;
+
     private final JsonMapper mapper = new JsonMapper();
 
     private final HttpClient client;
@@ -48,12 +58,14 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
 
     private final Function<Request, Request> requestInterceptor;
 
-    private DokumentlagerApiImpl(@NonNull String uploadBaseUrl,
-                                 @NonNull String downloadBaseUrl,
-                                 @NonNull AuthenticationStrategy authenticationStrategy,
-                                 Function<Request, Request> requestInterceptor,
-                                 @NonNull PathHandler pathHandler,
-                                 @NonNull HttpConfiguration httpConfiguration) {
+    private DokumentlagerApiImpl(
+            @NonNull String uploadBaseUrl,
+            @NonNull String downloadBaseUrl,
+            @NonNull AuthenticationStrategy authenticationStrategy,
+            Function<Request, Request> requestInterceptor,
+            @NonNull PathHandler pathHandler,
+            @NonNull HttpConfiguration httpConfiguration
+    ) {
         this.uploadbaseUrl = uploadBaseUrl;
         this.downloadBaseUrl = downloadBaseUrl;
         this.authenticationStrategy = authenticationStrategy;
@@ -79,11 +91,13 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
     }
 
     @Override
-    public DokumentlagerResponse<DokumentMetadataUploadResult> uploadDokument(@NonNull InputStream dokumentStream,
-                                                                              @NonNull DokumentMetadataUpload metadata,
-                                                                              @NonNull UUID fiksOrganisasjonId,
-                                                                              @NonNull UUID kontoId,
-                                                                              boolean kryptert) {
+    public DokumentlagerResponse<DokumentMetadataUploadResult> uploadDokument(
+            @NonNull InputStream dokumentStream,
+            @NonNull DokumentMetadataUpload metadata,
+            @NonNull UUID fiksOrganisasjonId,
+            @NonNull UUID kontoId,
+            boolean kryptert
+    ) {
         log.debug("Uploading {}dokument for organisasjon {} and konto {}: {}", kryptert ? "encrypted " : "", fiksOrganisasjonId, kontoId, metadata);
         try {
             ContentResponse response = newUploadRequest()
@@ -144,7 +158,7 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
                         HttpFields.from(
                                 new HttpField(HttpHeader.CONTENT_TYPE, ContentType.APPLICATION_OCTET_STREAM.getMimeType())
                         ),
-                        new InputStreamRequestContent(dokumentStream)
+                        new InputStreamRequestContent(ContentType.APPLICATION_OCTET_STREAM.getMimeType(), dokumentStream, new ByteBufferPool.Sized(null, false, BYTE_BUFFER_SIZE))
                 )
         );
     }
@@ -311,7 +325,8 @@ public class DokumentlagerApiImpl implements DokumentlagerApi {
         }
     }
 
-    private record Korrelasjonsid(UUID korrelasjonsid) {}
+    private record Korrelasjonsid(UUID korrelasjonsid) {
+    }
 
     @Override
     public DokumentlagerResponse<String> getPublicKey() {
